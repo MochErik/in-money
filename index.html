@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>In Money</title>
+  <!-- Security & Privacy Hardening Meta Tags -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; img-src 'self' data: blob: https:; connect-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com data:;">
+  
+  <!-- PWA & Apple iOS Icons & Meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="In Money">
+  <meta name="theme-color" content="#121214">
+  
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  
+  <!-- Premium Luxury Fonts: Playfair Display, Outfit & Manrope -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF & autoTable CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- Tesseract.js OCR for Offline Receipt Scanning -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      letter-spacing: -0.015em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #e6eae0;
+      color: #18181b;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .hero-matte-gradient {
+      background: linear-gradient(135deg, #121214 0%, #1a1a1e 50%, #242429 100%);
+      box-shadow: 0 16px 36px -8px rgba(18, 18, 21, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tabungan-ash-card {
+      background: linear-gradient(145deg, #e4e7e0 0%, #d8dcd3 100%);
+      border: 1px solid rgba(160, 170, 155, 0.4);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.04);
+      border-radius: 24px;
+    }
+
+    .tactile-white-card {
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.03);
+      border-radius: 24px;
+    }
+
+    .active-pill {
+      background: #121214;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Guaranteed Notch and Island Accommodation */
+    .app-header {
+      padding-top: calc(env(safe-area-inset-top, 24px) + 12px);
+    }
+
+    .app-dock {
+      padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 8px);
+    }
+
+    .pin-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 9999px;
+      border: 2px solid #a1a1aa;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pin-dot.filled {
+      background-color: #18181b;
+      border-color: #18181b;
+      transform: scale(1.2);
+    }
+
+    /* Heatmap Day Square */
+    .heat-square {
+      aspect-ratio: 1/1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="select-none flex flex-col min-h-screen">
+
+  <!-- ================= 0. LOCK / LOGIN SCREEN (6-DIGIT PIN + FACE ID) ================= -->
+  <div id="lockScreen" class="fixed inset-0 z-[100] bg-[#e6eae0] flex flex-col items-center justify-between p-6 py-10 transition-all duration-500">
+    <div class="w-full max-w-xs flex flex-col items-center pt-6">
+      <div class="w-20 h-20 rounded-3xl bg-black border border-white/20 p-1 shadow-2xl flex items-center justify-center overflow-hidden mb-4">
+        <img src="data:image/png;base64,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AABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIys7Dw1P0HgAAAnAGAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAAA6Of0PbAfl82refe0AAAAASUVORK5CYII=" alt="In Money Icon" class="w-full h-full object-cover rounded-2xl">
+      </div>
+      <h2 class="text-3xl tracking-[-0.02em] text-slate-950 flex items-center gap-1.5 font-bold" style="font-family: 'Playfair Display', serif;"><span class="italic font-medium">In</span> <span class="font-black tracking-tight">Money</span></h2>
+      <p class="text-xs font-semibold text-slate-500 mt-1" id="lockPromptText">Masukkan 6-Digit PIN Keamanan</p>
+
+      <!-- 6 PIN Indicator Dots -->
+      <div class="flex items-center gap-3 my-6">
+        <div class="pin-dot" id="dot-0"></div>
+        <div class="pin-dot" id="dot-1"></div>
+        <div class="pin-dot" id="dot-2"></div>
+        <div class="pin-dot" id="dot-3"></div>
+        <div class="pin-dot" id="dot-4"></div>
+        <div class="pin-dot" id="dot-5"></div>
+      </div>
+    </div>
+
+    <!-- Numpad -->
+    <div class="w-full max-w-xs grid grid-cols-3 gap-3.5 text-center pb-4">
+      <button onclick="pressPin('1')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">1</button>
+      <button onclick="pressPin('2')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">2</button>
+      <button onclick="pressPin('3')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">3</button>
+      <button onclick="pressPin('4')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">4</button>
+      <button onclick="pressPin('5')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">5</button>
+      <button onclick="pressPin('6')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">6</button>
+      <button onclick="pressPin('7')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">7</button>
+      <button onclick="pressPin('8')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">8</button>
+      <button onclick="pressPin('9')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">9</button>
+      
+      <!-- Biometric / Face ID -->
+      <button onclick="triggerBiometricAuth()" class="h-14 rounded-full bg-slate-900 text-white font-bold text-xs shadow-md active:scale-95 transition flex flex-col items-center justify-center gap-0.5">
+        <i data-lucide="scan-face" class="w-5 h-5 text-emerald-400"></i>
+        <span class="text-[8px]">Face ID</span>
+      </button>
+
+      <button onclick="pressPin('0')" class="h-14 rounded-full bg-white text-slate-900 font-bold text-xl shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">0</button>
+      
+      <!-- Delete -->
+      <button onclick="deletePin()" class="h-14 rounded-full bg-white/70 text-slate-700 font-bold text-base shadow-sm active:scale-95 transition flex items-center justify-center border border-slate-200">
+        <i data-lucide="delete" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="text-center">
+      <button onclick="promptForgotPin()" class="text-xs text-slate-500 font-semibold hover:text-slate-800 transition">Lupa PIN? (Default: 123456)</button>
+    </div>
+  </div>
+
+  <!-- ================= TOP APP HEADER ================= -->
+  <header class="app-header bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-4 md:px-8 pb-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Brand ONLY: Minimalist Black $ App Icon + Luxury Playfair Title -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-black border border-white/20 p-0.5 shadow-md flex items-center justify-center overflow-hidden flex-shrink-0">
+          <img src="data:image/png;base64,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AABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIigAAgKQIAABIys7Dw1P0HgAAAnAGAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAACSIgAAICkCAAA6Of0PbAfl82refe0AAAAASUVORK5CYII=" alt="In Money Icon" class="w-full h-full object-cover rounded-xl">
+        </div>
+        <h1 class="text-xl tracking-[-0.02em] text-slate-950 flex items-center gap-1 font-bold" style="font-family: 'Playfair Display', serif;"><span class="italic font-medium">In</span> <span class="font-black tracking-tight">Money</span></h1>
+      </div>
+
+      <!-- Right Quick Actions -->
+      <div class="flex items-center gap-2">
+        <button onclick="openModalAddTx()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2 rounded-full flex items-center gap-1.5 shadow-sm active:scale-95 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Catat</span>
+        </button>
+
+        <button onclick="lockAppNow()" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="Kunci Aplikasi">
+          <i data-lucide="lock" class="w-4 h-4 text-slate-700"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= TAB CONTENT CONTAINER ================= -->
+  <main class="max-w-6xl w-full mx-auto px-4 py-4 md:py-6 flex-1 space-y-4 md:space-y-6">
+    
+    <!-- ================= TAB 1: TABUNGAN (PALING KIRI) ================= -->
+    <div id="tab-tabungan" class="tab-page hidden space-y-4 md:space-y-6">
+      <div class="tabungan-ash-card p-5 md:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+              <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-base">Tabungan & Celengan</h3>
+              <p class="text-[11px] text-slate-600">Alokasi simpanan fleksibel dan celengan target</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button onclick="toggleModal('modal-add-savings-target')" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center gap-1 shadow-sm transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Tambah Target</span>
+            </button>
+            <button onclick="toggleModal('modal-setor-savings')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm transition">
+              <i data-lucide="arrow-down-to-dot" class="w-3.5 h-3.5"></i>
+              <span>Setor Tabungan</span>
+            </button>
+            <button onclick="downloadSavingsPDF()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold flex items-center gap-1 shadow-sm transition">
+              <i data-lucide="file-down" class="w-3.5 h-3.5 text-slate-700"></i>
+              <span>Unduh PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Savings Vaults Dynamic Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="savingsContainer"></div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: E-WALLET (DOMPET, REKENING & FITUR 1: TRANSFER) ================= -->
+    <div id="tab-ewallet" class="tab-page hidden space-y-4 md:space-y-6">
+      <div class="tactile-white-card p-5 md:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Dompet & Rekening E-Wallet</h3>
+            <p class="text-[11px] text-slate-500">Pilih akun untuk atur saldo, mutasi, atau transfer dana</p>
+          </div>
+          
+          <!-- FITUR 1: TOMBOL TRANSFER / PINDAH DANA ANTAR REKENING -->
+          <div class="flex items-center gap-2">
+            <button onclick="openModalTransfer()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
+              <i data-lucide="arrow-left-right" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Transfer / Pindah Dana</span>
+            </button>
+            <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">6 Akun</span>
+          </div>
+        </div>
+
+        <!-- Wallets Grid with 100% Real Bank Logos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="walletsGridContainer"></div>
+      </div>
+
+      <!-- Catatan Khusus Penggunaan Rekening / E-Wallet Terpilih -->
+      <div class="tactile-white-card p-5 md:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm md:text-base">Catatan Penggunaan Rekening</h3>
+            <p class="text-[11px] text-slate-500" id="selectedWalletHistorySubtitle">Menampilkan mutasi seluruh dompet & rekening</p>
+          </div>
+
+          <!-- Real Logo Filter Selector Button -->
+          <button type="button" onclick="openFilterBankPicker()" id="selectedFilterBtn" class="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-900 flex items-center justify-between gap-2 shadow-sm">
+            <div class="flex items-center gap-2">
+              <img id="selectedFilterLogo" src="./assets/logos/cash.jpg" alt="Logo" class="w-4 h-4 object-contain rounded hidden">
+              <i data-lucide="layers" id="selectedFilterIconAll" class="w-4 h-4 text-slate-600"></i>
+              <span id="selectedFilterName">Semua Rekening</span>
+            </div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+          </button>
+        </div>
+
+        <div class="divide-y divide-slate-100" id="walletHistoryContainer"></div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 3: BERANDA (DI TENGAH - DEFAULT ACTIVE) ================= -->
+    <div id="tab-beranda" class="tab-page space-y-4 md:space-y-6">
+      
+      <!-- Period Switcher Pills -->
+      <div class="flex items-center justify-center">
+        <div class="grid grid-cols-4 bg-slate-200/90 p-1 rounded-2xl text-xs font-semibold gap-1 text-center border border-slate-300/40 w-full max-w-md shadow-sm">
+          <button onclick="setPeriod('daily')" id="pill-daily" class="py-1.5 rounded-xl text-slate-600 transition">Harian</button>
+          <button onclick="setPeriod('weekly')" id="pill-weekly" class="py-1.5 rounded-xl active-pill transition">Mingguan</button>
+          <button onclick="setPeriod('monthly')" id="pill-monthly" class="py-1.5 rounded-xl text-slate-600 transition">Bulanan</button>
+          <button onclick="setPeriod('yearly')" id="pill-yearly" class="py-1.5 rounded-xl text-slate-600 transition">Tahunan</button>
+        </div>
+      </div>
+
+      <!-- 1. HERO CARD: TOTAL SALDO BERSIH -->
+      <div class="hero-matte-gradient p-5 md:p-7 text-white rounded-3xl relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 relative z-10">
+          
+          <!-- Balance -->
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Saldo Bersih</span>
+              <button onclick="togglePrivacyMode()" class="text-slate-400 hover:text-white transition">
+                <i data-lucide="eye" id="privacyIcon" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight font-sans" id="displayBalance">
+              Rp 0
+            </div>
+            <div class="flex items-center gap-2 mt-2 text-xs text-slate-400">
+              <span class="inline-flex items-center gap-1 text-slate-300 font-semibold bg-white/5 px-2.5 py-0.5 rounded-full border border-white/10">
+                <i data-lucide="wallet" class="w-3 h-3"></i> Siap Digunakan
+              </span>
+            </div>
+          </div>
+
+          <!-- Period Cashflow Overflow Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/[0.04] border border-white/10 p-3.5 rounded-2xl backdrop-blur-md">
+            <div>
+              <div class="text-[10px] font-bold text-slate-400 mb-0.5 uppercase" id="overflowInLabel">PEMASUKAN</div>
+              <div class="text-sm sm:text-base font-bold text-emerald-400" id="displayIncome">
+                Rp 0
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[10px] font-bold text-slate-400 mb-0.5 uppercase" id="overflowOutLabel">PENGELUARAN</div>
+              <div class="text-sm sm:text-base font-bold text-rose-400" id="displayExpense">
+                Rp 0
+              </div>
+            </div>
+
+            <div class="col-span-2 sm:col-span-1 pt-2 sm:pt-0 border-t sm:border-t-0 sm:border-l border-white/10 sm:pl-3">
+              <div class="text-[10px] font-bold text-slate-400 mb-0.5">OVERFLOW</div>
+              <div class="text-sm sm:text-base font-bold text-slate-200" id="displaySurplus">
+                Rp 0
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+                  <!-- 2. FITUR 5: ULTRA-COMPACT EXPANDABLE MONOCHROME SPENDING CALENDAR (JAKARTA WIB) -->
+      <div class="tactile-white-card p-4 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+            </div>
+            <div>
+              <h3 id="calendarTitle" class="font-bold text-slate-900 text-xs sm:text-sm">Aktivitas Belanja 7 Hari Terakhir</h3>
+              <p id="calendarSubtitle" class="text-[10px] text-slate-400">Zona Waktu Indonesia (WIB)</p>
+            </div>
+          </div>
+
+          <!-- Minimalist Monochrome Legend (Hitam, Abu, Putih) -->
+          <div class="flex items-center gap-2 text-[9px] font-semibold text-slate-500">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-white border border-slate-300"></span> Hemat</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Wajar</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-900"></span> Aktif</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Grid for 7-Day or Full Monthly View -->
+        <div class="grid grid-cols-7 gap-1.5 pt-1 transition-all duration-300" id="spendingHeatmapGrid"></div>
+        
+        <p class="text-[10px] text-slate-600 text-center font-medium" id="heatmapSelectedDayInfo">Klik tanggal di atas untuk melihat detail pengeluaran.</p>
+
+        <!-- Chevron Toggle Button at Bottom Center -->
+        <div class="flex justify-center pt-1 border-t border-slate-100">
+          <button type="button" onclick="toggleCalendarView()" class="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition flex items-center justify-center" id="expandCalendarBtn" title="Buka/Tutup Seluruh Tanggal Bulanan">
+            <i data-lucide="chevron-down" id="expandCalendarIcon" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. FITUR 3: RECURRING BILLS & SUBSCRIPTIONS (TAGIHAN RUTIN BULANAN) -->
+      <div class="tactile-white-card p-5 md:p-6 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+              <i data-lucide="bell-ring" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm md:text-base">Tagihan & Langganan Rutin</h3>
+              <p class="text-[11px] text-slate-500">Pengingat beban rutin bulanan agar tidak telat</p>
+            </div>
+          </div>
+
+          <button onclick="toggleModal('modal-add-recurring')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold flex items-center gap-1 transition">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Tambah Tagihan</span>
+          </button>
+        </div>
+
+        <!-- Recurring Bills Dynamic Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1" id="recurringBillsGrid"></div>
+      </div>
+
+      <!-- 4. GRID: CASHFLOW CHART + BUDGET RING -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+        
+        <!-- Cashflow Chart (7 Cols) -->
+        <div class="lg:col-span-7 tactile-white-card p-5 md:p-6 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm md:text-base">Analisis Arus Kas</h3>
+              <p class="text-[11px] text-slate-500">Pemasukan vs Pengeluaran</p>
+            </div>
+            <div class="flex items-center gap-2 text-[11px]">
+              <span class="inline-flex items-center gap-1 font-semibold text-slate-800">
+                <span class="w-2 h-2 rounded-full bg-slate-900"></span> Masuk
+              </span>
+              <span class="inline-flex items-center gap-1 font-semibold text-slate-500">
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span> Keluar
+              </span>
+            </div>
+          </div>
+
+          <div class="w-full h-[190px] md:h-[220px] relative">
+            <canvas id="cashflowChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Budget Ring (5 Cols) -->
+        <div class="lg:col-span-5 tactile-white-card p-5 md:p-6 flex flex-col justify-center">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-slate-900 text-sm md:text-base">Anggaran Terpakai</h3>
+            <button onclick="toggleModal('modal-set-budget')" class="text-[11px] font-bold text-slate-900 hover:underline">Atur Limit</button>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+              <svg class="w-16 h-16 transform -rotate-90">
+                <circle cx="32" cy="32" r="26" stroke="#e2e8f0" stroke-width="6" fill="transparent"/>
+                <circle id="budgetCircleProgress" cx="32" cy="32" r="26" stroke="#18181b" stroke-width="6" fill="transparent" stroke-dasharray="163" stroke-dashoffset="0" stroke-linecap="round"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-xs font-black text-slate-900" id="budgetPercentDisplay">100%</span>
+                <span class="text-[8px] text-slate-500 font-bold uppercase">Safe</span>
+              </div>
+            </div>
+
+            <div class="flex-1 text-xs space-y-1.5">
+              <div class="flex justify-between text-slate-600">
+                <span>Pengeluaran:</span>
+                <span class="font-bold text-slate-900" id="budgetDisplay">Rp 0 / Rp 0</span>
+              </div>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div id="budgetBarProgress" class="bg-slate-900 h-full rounded-full" style="width: 0%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500" id="budgetSubtext">Belum ada pengeluaran tercatat.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 4: LAPORAN (CATATAN TRANSAKSI, TAGS FILTER & DOWNLOAD PDF) ================= -->
+    <div id="tab-laporan" class="tab-page hidden space-y-4 md:space-y-6">
+      
+      <!-- Action Bar Download PDF -->
+      <div class="tactile-white-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Pusat Laporan & Mutasi</h3>
+          <p class="text-[11px] text-slate-500">Unduh dokumen PDF resmi atau telusuri seluruh riwayat</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="downloadRealPDF()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="file-down" class="w-4 h-4 text-emerald-400"></i>
+            <span>Unduh PDF Transaksi</span>
+          </button>
+          <button onclick="downloadSavingsPDF()" class="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="file-down" class="w-4 h-4 text-slate-700"></i>
+            <span>Unduh PDF Tabungan</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Catatan Transaksi Table & Search ONLY -->
+      <div class="tactile-white-card p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm md:text-base">Catatan Transaksi</h3>
+            <p class="text-[11px] text-slate-500">Daftar riwayat arus kas pemasukan, pengeluaran & transfer</p>
+          </div>
+
+          <!-- Pure Search Box ONLY -->
+          <div class="relative w-full sm:w-64">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchTxInput" onkeyup="filterTransactions()" placeholder="Cari transaksi / #tag..." class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <div class="divide-y divide-slate-100" id="transactionListContainer"></div>
+      </div>
+
+    </div>
+
+    <!-- ================= TAB 5: PENGATURAN (SECURITY, PIN, BACKUP, RESET) ================= -->
+    <div id="tab-pengaturan" class="tab-page hidden space-y-4 md:space-y-6">
+      
+      <!-- Security Settings -->
+      <div class="tactile-white-card p-5 md:p-6 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-slate-900 text-emerald-400 flex items-center justify-center shadow-md">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Keamanan & Login</h3>
+            <p class="text-[11px] text-slate-500">Kelola 6-digit PIN dan otentikasi biometrik Face ID</p>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2">
+          <button onclick="promptChangePin()" class="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 text-left flex items-center justify-between transition">
+            <div class="flex items-center gap-3">
+              <i data-lucide="key" class="w-4 h-4 text-slate-700"></i>
+              <div>
+                <div class="font-bold text-xs text-slate-900">Ubah 6-Digit PIN</div>
+                <div class="text-[10px] text-slate-400">Ganti PIN pengaman aplikasi Anda</div>
+              </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+          </button>
+
+          <button onclick="testBiometricSetup()" class="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 text-left flex items-center justify-between transition">
+            <div class="flex items-center gap-3">
+              <i data-lucide="scan-face" class="w-4 h-4 text-emerald-600"></i>
+              <div>
+                <div class="font-bold text-xs text-slate-900">Otentikasi Face ID / Biometrik</div>
+                <div class="text-[10px] text-slate-400">Status: Aktif terhubung ke sistem device</div>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">Aktif</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Backup & Data Management -->
+      <div class="tactile-white-card p-5 md:p-6 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-md">
+            <i data-lucide="database" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Cadangan & Pemulihan Data</h3>
+            <p class="text-[11px] text-slate-500">Ekspor atau impor data transaksi Anda dalam format JSON</p>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 pt-2">
+          <button onclick="exportJsonFile()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Unduh Cadangan JSON</span>
+          </button>
+          
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+            <label class="block font-bold text-slate-700 mb-1.5">Pulihkan dari file cadangan JSON:</label>
+            <input type="file" id="jsonFileInput" accept=".json" onchange="importJsonFile(event)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700">
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100">
+          <button onclick="resetAllDataFactory()" class="w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="trash-2" class="w-4 h-4 text-rose-600"></i>
+            <span>Reset Seluruh Data ke Awal (Rp 0)</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= BOTTOM NAVIGATION DOCK (5 TABS) ================= -->
+  <nav class="app-dock bg-white/95 backdrop-blur-lg border-t border-slate-200 px-3 py-2 sticky bottom-0 z-40 shadow-xl">
+    <div class="max-w-md mx-auto grid grid-cols-5 text-center items-center">
+      
+      <!-- 1. Tabungan (Kiri 1) -->
+      <button onclick="switchTab('tabungan')" id="dock-tabungan" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 text-[10px] font-semibold transition">
+        <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+        <span>Tabungan</span>
+      </button>
+
+      <!-- 2. E-Wallet (Kiri 2) -->
+      <button onclick="switchTab('ewallet')" id="dock-ewallet" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 text-[10px] font-semibold transition">
+        <i data-lucide="credit-card" class="w-5 h-5"></i>
+        <span>E-Wallet</span>
+      </button>
+
+      <!-- 3. Beranda (Center - Active Default) -->
+      <button onclick="switchTab('beranda')" id="dock-beranda" class="flex flex-col items-center gap-0.5 text-slate-900 font-bold text-[10px] transition">
+        <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center -mt-4 shadow-lg border-2 border-white">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        </div>
+        <span class="mt-0.5">Beranda</span>
+      </button>
+
+      <!-- 4. Laporan (Kanan 1) -->
+      <button onclick="switchTab('laporan')" id="dock-laporan" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 text-[10px] font-semibold transition">
+        <i data-lucide="file-text" class="w-5 h-5"></i>
+        <span>Laporan</span>
+      </button>
+
+      <!-- 5. Pengaturan (Kanan 2) -->
+      <button onclick="switchTab('pengaturan')" id="dock-pengaturan" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 text-[10px] font-semibold transition">
+        <i data-lucide="settings" class="w-5 h-5"></i>
+        <span>Pengaturan</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ================= MODALS & SMART TOOLS ================= -->
+
+  <!-- MODAL: ADD TX (WITH FITUR 4: OCR SCAN STRUK + FITUR 7: CUSTOM KATEGORI & TAGS) -->
+  <div id="modal-add-tx" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-100 text-slate-900 space-y-3.5 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Catat Transaksi Baru</h3>
+        
+        <!-- FITUR 4: OCR SCAN STRUK KAMERA BUTTON -->
+        <div class="flex items-center gap-2">
+          <label for="receiptCameraInput" class="cursor-pointer px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 flex items-center gap-1 border border-slate-200 transition" title="Foto atau scan struk belanja">
+            <i data-lucide="camera" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span id="ocrStatusText">Scan Struk</span>
+          </label>
+          <input type="file" id="receiptCameraInput" accept="image/*" capture="environment" onchange="handleReceiptScan(event)" class="hidden">
+          
+          <button onclick="toggleModal('modal-add-tx')" class="text-slate-400 hover:text-slate-600">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Type Switcher -->
+      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl gap-1 text-xs font-bold text-center">
+        <button type="button" onclick="setTxFormType('EXPENSE')" id="form-type-expense" class="py-1.5 rounded-lg bg-slate-900 text-white shadow">💸 Pengeluaran</button>
+        <button type="button" onclick="setTxFormType('INCOME')" id="form-type-income" class="py-1.5 rounded-lg text-slate-600">💰 Pemasukan</button>
+      </div>
+
+      <form id="addTxForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nominal (Rupiah)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="formAmount" required placeholder="0" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Deskripsi / Catatan</label>
+          <input type="text" id="formNote" required placeholder="Contoh: Makan Siang Nasi Padang" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+
+        <!-- FITUR 7: CUSTOM KATEGORI INPUT + QUICK PILL CHOICES -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kategori (Bisa Ditulis Bebas / Pilih Cepat)</label>
+          <input type="text" id="formCategoryCustom" required value="Makanan & Minuman" placeholder="Tulis kategori baru..." class="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 mb-1.5">
+          
+          <!-- Quick Preset Pills (Kategori Lama Tetap Ada & Bisa Diklik) -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button type="button" onclick="setQuickCategory('Makanan & Minuman')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-semibold text-slate-700">🍱 Makanan</button>
+            <button type="button" onclick="setQuickCategory('Transportasi')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-semibold text-slate-700">🛵 Transport</button>
+            <button type="button" onclick="setQuickCategory('Belanja Harian')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-semibold text-slate-700">🛒 Belanja</button>
+            <button type="button" onclick="setQuickCategory('Tagihan & Utilitas')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-semibold text-slate-700">⚡ Tagihan</button>
+            <button type="button" onclick="setQuickCategory('Gaji & Karir')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-semibold text-slate-700">💼 Gaji</button>
+            <button type="button" onclick="setQuickCategory('Investasi & Tabungan')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-semibold text-slate-700">📈 Tabungan</button>
+          </div>
+        </div>
+
+        <!-- FITUR 7: MULTI-TAGGING (#Tag) -->
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tag Khusus (Opsional)</label>
+          <input type="text" id="formTags" placeholder="Contoh: #Kuliah #Liburan #Proyek" class="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+
+        <!-- Real Logo Bank Selector Button -->
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-600 mb-1">Dompet / Rekening</label>
+          <button type="button" onclick="openBankPicker('tx')" id="selectedBankBtnTx" class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 flex items-center justify-between gap-1 shadow-sm">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <img id="selectedBankLogoTx" src="./assets/logos/cash.jpg" alt="Bank" class="w-5 h-5 object-contain rounded flex-shrink-0">
+              <span id="selectedBankNameTx" class="truncate">Cash</span>
+            </div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
+          </button>
+          <input type="hidden" id="formWallet" value="Uang Tunai Cash">
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Simpan Transaksi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: FITUR 1: TRANSFER / PINDAH DANA ANTAR REKENING -->
+  <div id="modal-transfer-fund" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-100 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-slate-900 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+          </div>
+          <h3 class="font-bold text-sm text-slate-900">Transfer Antar Rekening</h3>
+        </div>
+        <button onclick="toggleModal('modal-transfer-fund')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="transferFundForm" onsubmit="handleTransferSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nominal Transfer (Rupiah)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="transferAmountInput" required placeholder="100000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <!-- From and To Account Pickers -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600 mb-1">Dari Rekening</label>
+            <select id="transferFromSelect" class="w-full px-2 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-slate-900"></select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600 mb-1">Ke Rekening</label>
+            <select id="transferToSelect" class="w-full px-2 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-slate-900"></select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Catatan / Keterangan Transfer</label>
+          <input type="text" id="transferNoteInput" placeholder="Contoh: Tarik tunai ATM / Top-up Shopee" class="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Konfirmasi Pindah Saldo
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: FITUR 3: ADD RECURRING BILL -->
+  <div id="modal-add-recurring" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-100 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Tambah Tagihan Rutin</h3>
+        <button onclick="toggleModal('modal-add-recurring')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="addRecurringForm" onsubmit="handleAddRecurring(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Tagihan / Langganan</label>
+          <input type="text" id="recurringNameInput" required placeholder="Contoh: WiFi / Spotify / Kos" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600 mb-1">Nominal (Rp)</label>
+            <input type="number" id="recurringAmountInput" required placeholder="50000" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600 mb-1">Jatuh Tempo (Tgl)</label>
+            <input type="number" min="1" max="31" id="recurringDueInput" required placeholder="15" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-600 mb-1">Dompet Pembayaran</label>
+          <select id="recurringWalletSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"></select>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Simpan Jadwal Tagihan
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: BANK LOGO PICKER (TACTILE REAL LOGO DIALOG) -->
+  <div id="modal-bank-picker" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-xs shadow-2xl border border-slate-100 text-slate-900 space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-xs text-slate-900" id="bankPickerTitle">Pilih Dompet / Bank</h3>
+        <button onclick="toggleModal('modal-bank-picker')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-1.5 max-h-64 overflow-y-auto" id="bankPickerList"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT WALLET BALANCE -->
+  <div id="modal-edit-wallet" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-200 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900" id="editWalletTitle">Atur Saldo Rekening</h3>
+        <button onclick="toggleModal('modal-edit-wallet')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="editWalletForm" onsubmit="handleWalletBalanceSubmit(event)" class="space-y-3">
+        <input type="hidden" id="editWalletId">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Saldo Rekening Baru (Rupiah)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="editWalletAmount" required placeholder="0" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <p class="text-[10px] text-slate-500 mt-1">Selisih saldo akan otomatis dicatat dalam riwayat mutasi.</p>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Simpan Perubahan Saldo
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SET BUDGET LIMIT -->
+  <div id="modal-set-budget" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-200 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Atur Batas Anggaran</h3>
+        <button onclick="toggleModal('modal-set-budget')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="budgetLimitForm" onsubmit="handleBudgetSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Batas Maksimal Pengeluaran (Rupiah)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="budgetLimitInput" required placeholder="5000000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Simpan Limit Anggaran
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD SAVINGS TARGET -->
+  <div id="modal-add-savings-target" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-200 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Tambah Pos Tabungan</h3>
+        <button onclick="toggleModal('modal-add-savings-target')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="createTargetForm" onsubmit="handleCreateTarget(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Tabungan</label>
+          <input type="text" id="targetNameInput" required placeholder="Contoh: Tabungan Utama" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Target Nominal (Opsional)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="targetGoalInput" placeholder="10000000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Simpan Tabungan
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SETOR SAVINGS -->
+  <div id="modal-setor-savings" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-200 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Setor ke Tabungan</h3>
+        <button onclick="toggleModal('modal-setor-savings')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="addSavingsForm" onsubmit="handleSavingsSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pilih Tabungan</label>
+          <select id="savingsTargetSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"></select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nominal Setoran</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="savingsAmountInput" required placeholder="500000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-semibold text-slate-600 mb-1">Sumber Rekening</label>
+          <button type="button" onclick="openBankPicker('savings')" id="selectedBankBtnSavings" class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 flex items-center justify-between gap-1 shadow-sm">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <img id="selectedBankLogoSavings" src="./assets/logos/mandiri.png" alt="Bank" class="w-5 h-5 object-contain rounded flex-shrink-0">
+              <span id="selectedBankNameSavings" class="truncate">Mandiri</span>
+            </div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
+          </button>
+          <input type="hidden" id="savingsSourceWallet" value="Bank Mandiri">
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Konfirmasi Setoran
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    let transactions = JSON.parse(localStorage.getItem('inmoney_transactions') || '[]');
+    let savingsData = JSON.parse(localStorage.getItem('inmoney_savings') || '[]');
+    let recurringBills = JSON.parse(localStorage.getItem('inmoney_recurring') || '[]');
+    let budgetLimit = parseFloat(localStorage.getItem('inmoney_budget_limit') || '0');
+    let userPin = localStorage.getItem('inmoney_pin') || '123456';
+    let isUnlocked = sessionStorage.getItem('inmoney_unlocked') === 'true';
+
+    let wallets = JSON.parse(localStorage.getItem('inmoney_wallets') || JSON.stringify([
+      { id: 'wallet-cash', name: 'Uang Tunai Cash', shortName: 'Cash', balance: 0, logo: './assets/logos/cash.jpg' },
+      { id: 'wallet-mandiri', name: 'Bank Mandiri', shortName: 'Mandiri', balance: 0, logo: './assets/logos/mandiri.png' },
+      { id: 'wallet-bri', name: 'Bank BRI', shortName: 'BRI', balance: 0, logo: './assets/logos/bri.png' },
+      { id: 'wallet-btn', name: 'Bank BTN', shortName: 'BTN', balance: 0, logo: './assets/logos/btn.png' },
+      { id: 'wallet-seabank', name: 'SeaBank', shortName: 'SeaBank', balance: 0, logo: './assets/logos/seabank.jpg' },
+      { id: 'wallet-shopeepay', name: 'ShopeePay', shortName: 'ShopeePay', balance: 0, logo: './assets/logos/shopeepay.png' }
+    ]));
+
+    let currentPeriod = 'weekly';
+    let currentFormType = 'EXPENSE';
+    let isPrivacyMode = false;
+    let chartInstance = null;
+    let enteredPin = '';
+    let currentBankPickerContext = 'tx';
+    let currentFilterWallet = 'ALL';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initLockScreen();
+      renderWallets();
+      renderTransactions();
+      renderSavings();
+      renderRecurringBills();
+      renderSpendingHeatmap();
+      initChart();
+      updateTotals();
+      buildBankPickerList();
+    });
+
+    function saveState() {
+      localStorage.setItem('inmoney_transactions', JSON.stringify(transactions));
+      localStorage.setItem('inmoney_savings', JSON.stringify(savingsData));
+      localStorage.setItem('inmoney_recurring', JSON.stringify(recurringBills));
+      localStorage.setItem('inmoney_wallets', JSON.stringify(wallets));
+      localStorage.setItem('inmoney_budget_limit', budgetLimit.toString());
+      localStorage.setItem('inmoney_pin', userPin);
+    }
+
+    
+    // ================= SECURITY & DEFENSE ENGINE (OWASP / SAST HARDENED) =================
+    // 1. Anti-XSS DOM Sanitizer
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 2. Cryptographic SHA-256 Hash for PIN Security
+    async function hashPin(pin) {
+      const encoder = new TextEncoder();
+      const salt = "inmoney_salt_2026_erik_";
+      const data = encoder.encode(salt + pin);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // 3. Brute Force Protection (Rate Limiting)
+    let failedPinAttempts = parseInt(sessionStorage.getItem('inmoney_failed_attempts') || '0');
+    let lockUntilTime = parseInt(sessionStorage.getItem('inmoney_lock_until') || '0');
+
+    function checkBruteForceLock() {
+      const now = Date.now();
+      if (now < lockUntilTime) {
+        const secondsLeft = Math.ceil((lockUntilTime - now) / 1000);
+        const lockPrompt = document.getElementById('lockPromptText');
+        if (lockPrompt) {
+          lockPrompt.innerText = `Terlalu banyak percobaan. Tunggu ${secondsLeft} detik.`;
+          lockPrompt.className = 'text-xs font-bold text-rose-600 mt-1';
+        }
+        return true;
+      }
+      return false;
+    }
+
+    // ================= 1. 6-DIGIT PIN & NATIVE WEBAUTHN FACE ID / PASSKEY =================
+    let hashedPin = localStorage.getItem('inmoney_pin_hash') || null;
+
+    async function ensureHashedPin() {
+      if (!hashedPin) {
+        // Default PIN 123456 hashed
+        hashedPin = await hashPin('123456');
+        localStorage.setItem('inmoney_pin_hash', hashedPin);
+      }
+    }
+
+    function initLockScreen() {
+      ensureHashedPin();
+      const lockScreen = document.getElementById('lockScreen');
+      if (isUnlocked) {
+        lockScreen.style.display = 'none';
+      } else {
+        lockScreen.style.display = 'flex';
+        enteredPin = '';
+        updatePinDots();
+        checkBruteForceLock();
+      }
+    }
+
+    function pressPin(num) {
+      if (checkBruteForceLock()) return;
+
+      if (enteredPin.length < 6) {
+        enteredPin += num;
+        updatePinDots();
+        if (enteredPin.length === 6) {
+          setTimeout(verifyPin, 150);
+        }
+      }
+    }
+
+    function deletePin() {
+      if (checkBruteForceLock()) return;
+      if (enteredPin.length > 0) {
+        enteredPin = enteredPin.slice(0, -1);
+        updatePinDots();
+      }
+    }
+
+    function updatePinDots() {
+      for (let i = 0; i < 6; i++) {
+        const dot = document.getElementById('dot-' + i);
+        if (dot) {
+          if (i < enteredPin.length) dot.classList.add('filled');
+          else dot.classList.remove('filled');
+        }
+      }
+    }
+
+    async function verifyPin() {
+      if (checkBruteForceLock()) return;
+
+      await ensureHashedPin();
+      const enteredHash = await hashPin(enteredPin);
+
+      if (enteredHash === hashedPin) {
+        // Reset brute force counter on success
+        failedPinAttempts = 0;
+        sessionStorage.removeItem('inmoney_failed_attempts');
+        sessionStorage.removeItem('inmoney_lock_until');
+        unlockSuccess();
+      } else {
+        failedPinAttempts++;
+        sessionStorage.setItem('inmoney_failed_attempts', failedPinAttempts.toString());
+
+        if (failedPinAttempts >= 5) {
+          lockUntilTime = Date.now() + 30000; // Lock for 30s
+          sessionStorage.setItem('inmoney_lock_until', lockUntilTime.toString());
+          checkBruteForceLock();
+        } else {
+          const remaining = 5 - failedPinAttempts;
+          document.getElementById('lockPromptText').innerText = `PIN Salah! Sisa percobaan: ${remaining}x`;
+          document.getElementById('lockPromptText').className = 'text-xs font-bold text-rose-500 mt-1';
+        }
+
+        enteredPin = '';
+        updatePinDots();
+      }
+    }
+
+    function unlockSuccess() {
+      isUnlocked = true;
+      sessionStorage.setItem('inmoney_unlocked', 'true');
+      const lockScreen = document.getElementById('lockScreen');
+      lockScreen.style.opacity = '0';
+      setTimeout(() => {
+        lockScreen.style.display = 'none';
+      }, 300);
+    }
+
+    function lockAppNow() {
+      isUnlocked = false;
+      sessionStorage.removeItem('inmoney_unlocked');
+      const lockScreen = document.getElementById('lockScreen');
+      lockScreen.style.display = 'flex';
+      lockScreen.style.opacity = '1';
+      document.getElementById('lockPromptText').innerText = 'Masukkan 6-Digit PIN Keamanan';
+      document.getElementById('lockPromptText').className = 'text-xs font-semibold text-slate-500 mt-1';
+      enteredPin = '';
+      updatePinDots();
+      checkBruteForceLock();
+    }
+
+    async function triggerBiometricAuth() {
+      if (checkBruteForceLock()) return;
+      const lockPrompt = document.getElementById('lockPromptText');
+      if (!window.PublicKeyCredential) {
+        alert('Perangkat / browser ini belum mendukung WebAuthn Face ID.');
+        return;
+      }
+
+      try {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (!available) {
+          alert('Face ID / Biometrik tidak aktif atau tidak tersedia pada browser ini.');
+          return;
+        }
+
+        if (lockPrompt) {
+          lockPrompt.innerText = 'Pindai Face ID / Touch ID...';
+          lockPrompt.className = 'text-xs font-bold text-slate-900 mt-1';
+        }
+
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        const savedCredId = localStorage.getItem('inmoney_webauthn_id');
+
+        if (!savedCredId) {
+          const cred = await navigator.credentials.create({
+            publicKey: {
+              challenge: challenge,
+              rp: { name: "In Money PWA" },
+              user: {
+                id: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
+                name: "MochErik",
+                displayName: "Moch Erik Irriansyah"
+              },
+              pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+              authenticatorSelection: {
+                authenticatorAttachment: "platform",
+                userVerification: "required"
+              },
+              timeout: 60000
+            }
+          });
+
+          if (cred) {
+            const rawIdB64 = btoa(String.fromCharCode.apply(null, new Uint8Array(cred.rawId)));
+            localStorage.setItem('inmoney_webauthn_id', rawIdB64);
+            unlockSuccess();
+          }
+        } else {
+          const rawIdArr = Uint8Array.from(atob(savedCredId), c => c.charCodeAt(0));
+          const assertion = await navigator.credentials.get({
+            publicKey: {
+              challenge: challenge,
+              allowCredentials: [{ id: rawIdArr, type: 'public-key' }],
+              userVerification: "required",
+              timeout: 60000
+            }
+          });
+
+          if (assertion) {
+            unlockSuccess();
+          }
+        }
+      } catch (err) {
+        console.warn('Biometric cancelled or failed:', err);
+        if (lockPrompt) {
+          lockPrompt.innerText = 'Face ID Dibatalkan / Gagal. Gunakan PIN.';
+          lockPrompt.className = 'text-xs font-bold text-rose-500 mt-1';
+        }
+      }
+    }
+
+    async function promptForgotPin() {
+      const reset = prompt('Masukkan PIN Default Master (123456) untuk mereset:');
+      if (reset === '123456') {
+        hashedPin = await hashPin('123456');
+        localStorage.setItem('inmoney_pin_hash', hashedPin);
+        failedPinAttempts = 0;
+        sessionStorage.removeItem('inmoney_failed_attempts');
+        sessionStorage.removeItem('inmoney_lock_until');
+        alert('PIN berhasil direset menjadi 123456.');
+        enteredPin = '';
+        updatePinDots();
+        document.getElementById('lockPromptText').innerText = 'Masukkan 6-Digit PIN Keamanan';
+        document.getElementById('lockPromptText').className = 'text-xs font-semibold text-slate-500 mt-1';
+      } else if (reset !== null) {
+        alert('PIN Master salah.');
+      }
+    }
+
+    async function promptChangePin() {
+      const oldP = prompt('Masukkan 6-digit PIN saat ini:');
+      if (oldP === null) return;
+      const oldHash = await hashPin(oldP);
+      await ensureHashedPin();
+
+      if (oldHash === hashedPin) {
+        const newP = prompt('Masukkan 6-digit PIN baru:');
+        if (newP && newP.length === 6 && !isNaN(newP)) {
+          hashedPin = await hashPin(newP);
+          localStorage.setItem('inmoney_pin_hash', hashedPin);
+          alert('PIN 6-Digit berhasil dienkripsi dan diubah!');
+        } else if (newP !== null) {
+          alert('PIN harus berupa 6 digit angka.');
+        }
+      } else {
+        alert('PIN lama salah.');
+      }
+    }
+
+    async function testBiometricSetup() {
+      if (!window.PublicKeyCredential) {
+        alert('Perangkat tidak mendukung WebAuthn Face ID.');
+        return;
+      }
+      try {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (available) {
+          alert('Face ID / Biometrik aktif dan terhubung dengan aman ke perangkat Anda!');
+        } else {
+          alert('Face ID / Touch ID tidak aktif di browser ini.');
+        }
+      } catch (e) {
+        alert('Status biometrik: ' + e.message);
+      }
+    }
+
+    // ================= 2. 5-TAB SWITCHER NAVIGATION =================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
+      const activePage = document.getElementById('tab-' + tabName);
+      if (activePage) activePage.classList.remove('hidden');
+
+      ['tabungan', 'ewallet', 'beranda', 'laporan', 'pengaturan'].forEach(t => {
+        const btn = document.getElementById('dock-' + t);
+        if (btn) {
+          if (t === tabName) {
+            btn.className = 'flex flex-col items-center gap-0.5 text-slate-900 font-bold text-[10px] transition';
+          } else {
+            btn.className = 'flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-800 text-[10px] font-semibold transition';
+          }
+        }
+      });
+
+      if (tabName === 'ewallet') filterWalletSpecificHistory();
+      if (tabName === 'laporan') filterTransactions();
+      if (tabName === 'beranda') { renderSpendingHeatmap(); renderRecurringBills(); }
+      lucide.createIcons();
+    }
+
+    // ================= 3. BANK PICKER DIALOG (100% REAL LOGOS) =================
+    function buildBankPickerList() {
+      const container = document.getElementById('bankPickerList');
+      container.innerHTML = '';
+
+      if (currentBankPickerContext === 'filter') {
+        const allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = 'w-full p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 flex items-center justify-between transition';
+        allBtn.onclick = () => selectFilterBank('ALL', 'Semua Rekening', '');
+        allBtn.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+            <div class="font-bold text-xs text-slate-900">Semua Rekening</div>
+          </div>
+          <span class="text-xs text-slate-400 font-semibold">Tampilkan Semua</span>
+        `;
+        container.appendChild(allBtn);
+      }
+
+      wallets.forEach(w => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'w-full p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 flex items-center justify-between transition';
+        item.onclick = () => {
+          if (currentBankPickerContext === 'filter') selectFilterBank(w.name, w.name, w.logo);
+          else selectBank(w.name, w.shortName, w.logo);
+        };
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+              <img src="${w.logo}" alt="${w.name}" class="w-full h-full object-contain">
+            </div>
+            <div class="font-bold text-xs text-slate-900">${w.name}</div>
+          </div>
+          <div class="text-xs font-bold text-slate-600">Rp ${w.balance.toLocaleString('id-ID')}</div>
+        `;
+        container.appendChild(item);
+      });
+      lucide.createIcons();
+    }
+
+    function openBankPicker(context) {
+      currentBankPickerContext = context;
+      document.getElementById('bankPickerTitle').innerText = 'Pilih Dompet / Bank';
+      buildBankPickerList();
+      toggleModal('modal-bank-picker');
+    }
+
+    function openFilterBankPicker() {
+      currentBankPickerContext = 'filter';
+      document.getElementById('bankPickerTitle').innerText = 'Filter Berdasarkan Rekening';
+      buildBankPickerList();
+      toggleModal('modal-bank-picker');
+    }
+
+    function selectBank(name, shortName, logo) {
+      if (currentBankPickerContext === 'tx') {
+        document.getElementById('formWallet').value = name;
+        document.getElementById('selectedBankLogoTx').src = logo;
+        document.getElementById('selectedBankNameTx').innerText = shortName;
+      } else if (currentBankPickerContext === 'savings') {
+        document.getElementById('savingsSourceWallet').value = name;
+        document.getElementById('selectedBankLogoSavings').src = logo;
+        document.getElementById('selectedBankNameSavings').innerText = shortName;
+      }
+      toggleModal('modal-bank-picker');
+    }
+
+    function selectFilterBank(val, name, logo) {
+      currentFilterWallet = val;
+      const logoEl = document.getElementById('selectedFilterLogo');
+      const iconAll = document.getElementById('selectedFilterIconAll');
+      const nameEl = document.getElementById('selectedFilterName');
+
+      if (val === 'ALL') {
+        logoEl.classList.add('hidden');
+        iconAll.classList.remove('hidden');
+        nameEl.innerText = 'Semua Rekening';
+      } else {
+        logoEl.src = logo;
+        logoEl.classList.remove('hidden');
+        iconAll.classList.add('hidden');
+        nameEl.innerText = name;
+      }
+
+      filterWalletSpecificHistory();
+      toggleModal('modal-bank-picker');
+      lucide.createIcons();
+    }
+
+    // ================= 4. FITUR 4: SMART AI RECEIPT SCANNER & AUTO-CATEGORIZATION =================
+    const SMART_MERCHANT_DATABASE = [
+      // Makanan & Minuman
+      { keywords: ['kopi', 'coffee', 'starbucks', 'kenangan', 'janji jiwa', 'fore', 'point coffee', 'cafe', 'kafe', 'resto', 'restoran', 'mcd', 'mcdonalds', 'kfc', 'richeese', 'hokben', 'hoka', 'pizza', 'mie gacoan', 'gacoan', 'solaria', 'padang', 'warung', 'bakso', 'soto', 'nasi', 'ayam', 'teh', 'boba', 'chatime', 'haus', 'mixue', 'burger'], category: 'Makanan & Minuman', tag: '#Kuliner' },
+      
+      // Belanja Harian & Minimarket
+      { keywords: ['alfamart', 'indomaret', 'superindo', 'hypermart', 'transmart', 'lotte', 'yomart', 'circle k', 'lawson', 'familymart', 'hero', 'minimarket', 'supermarket', 'toko kelontong', 'sembako'], category: 'Belanja Harian', tag: '#Belanja' },
+      
+      // Transportasi & Bahan Bakar
+      { keywords: ['spbu', 'pertamina', 'shell', 'bp', 'bensin', 'pertamax', 'pertalite', 'solar', 'gojek', 'goride', 'gocar', 'grab', 'grabfood', 'grabbike', 'maxim', 'indrive', 'kai', 'kereta', 'tiket', 'parkir', 'tol'], category: 'Transportasi', tag: '#Transport' },
+      
+      // Tagihan & Utilitas
+      { keywords: ['pln', 'listrik', 'token', 'pdam', 'air', 'indihome', 'myrepublic', 'biznet', 'wifi', 'telkomsel', 'xl', 'indosat', 'tri', 'smartfren', 'pulsa', 'kuota', 'bpjs', 'pajak'], category: 'Tagihan & Utilitas', tag: '#Tagihan' },
+      
+      // Kesehatan & Medis
+      { keywords: ['apotek', 'kimia farma', 'k24', 'guardian', 'watsons', 'century', 'obat', 'farmasi', 'klinik', 'dokter', 'rumah sakit', 'rs', 'lab', 'halodoc', 'alodokter'], category: 'Kesehatan & Medis', tag: '#Kesehatan' },
+
+      // Belanja & Fashion / Gadget
+      { keywords: ['uniqlo', 'h&m', 'zara', 'pull&bear', 'matahari', 'gramedia', 'shopee', 'tokopedia', 'lazada', 'blibli', 'tiktok shop', 'ibox', 'digimap', 'erafone'], category: 'Belanja Harian', tag: '#Shopping' }
+    ];
+
+    async function handleReceiptScan(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const statusText = document.getElementById('ocrStatusText');
+      if (statusText) statusText.innerText = 'AI Menganalisis...';
+
+      try {
+        if (typeof Tesseract === 'undefined') {
+          alert('Modul OCR sedang dimuat, silakan coba 2 detik lagi.');
+          return;
+        }
+
+        const worker = await Tesseract.createWorker('ind+eng');
+        const ret = await worker.recognize(file);
+        await worker.terminate();
+
+        const fullText = (ret && ret.data && ret.data.text) ? ret.data.text : '';
+        if (statusText) statusText.innerText = 'Selesai!';
+        setTimeout(function() { if (statusText) statusText.innerText = 'Scan Struk'; }, 3000);
+
+        const lowerText = fullText.toLowerCase();
+
+        // 1. SMART AMOUNT EXTRACTION
+        let cleanedText = fullText
+          .replace(/Rp\.?/gi, 'Rp ')
+          .replace(/(\d+)[Oo](\d+)/g, '$10$2')
+          .replace(/(\d+)[Oo]/g, '$10');
+
+        const numMatches = cleanedText.match(/(?:total|grand\s*total|bayar|tagihan|netto|tunai|cash|debit)?[.:\s]*([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,8})/gi);
+        let extractedAmount = 0;
+
+        if (numMatches && numMatches.length > 0) {
+          numMatches.forEach(function(m) {
+            const rawVal = parseFloat(m.replace(/[^0-9]/g, ''));
+            if (rawVal > extractedAmount && rawVal < 100000000) {
+              extractedAmount = rawVal;
+            }
+          });
+        }
+
+        if (extractedAmount > 0) {
+          document.getElementById('formAmount').value = extractedAmount;
+        }
+
+        // 2. SMART AI MERCHANT & CATEGORY RECOGNITION
+        let matchedCategory = 'Belanja Harian';
+        let matchedTag = '#StrukBelanja';
+        let storeName = '';
+
+        for (let i = 0; i < SMART_MERCHANT_DATABASE.length; i++) {
+          const item = SMART_MERCHANT_DATABASE[i];
+          for (let j = 0; j < item.keywords.length; j++) {
+            const kw = item.keywords[j];
+            if (lowerText.indexOf(kw) !== -1) {
+              matchedCategory = item.category;
+              matchedTag = item.tag;
+              storeName = kw.charAt(0).toUpperCase() + kw.slice(1);
+              break;
+            }
+          }
+          if (storeName) break;
+        }
+
+        // Extract first meaningful line as title if store name not detected
+        const lines = fullText.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 3 && !/^[0-9\s:.,-]+$/.test(l); });
+        const detectedTitle = storeName ? (matchedCategory === 'Makanan & Minuman' ? 'Makan / Minum di ' + storeName : 'Belanja di ' + storeName) : (lines.length > 0 ? lines[0].substring(0, 30) : 'Pembelian dari Struk');
+
+        // 3. AUTO FILL FORM FIELDS WITH AI RECOGNITION
+        document.getElementById('formNote').value = detectedTitle;
+        document.getElementById('formCategoryCustom').value = matchedCategory;
+        document.getElementById('formTags').value = matchedTag + ' #Struk';
+
+        alert('✨ AI Smart Scan Berhasil!\n\n' +
+              '• Kategori Terdeteksi: ' + matchedCategory + '\n' +
+              '• Deskripsi: ' + detectedTitle + '\n' +
+              '• Nominal: Rp ' + extractedAmount.toLocaleString('id-ID') + '\n' +
+              '• Tag: ' + matchedTag);
+
+      } catch (err) {
+        if (statusText) statusText.innerText = 'Scan Gagal';
+        setTimeout(function() { if (statusText) statusText.innerText = 'Scan Struk'; }, 2500);
+        console.error('OCR Error:', err);
+      }
+    }
+
+    // ================= 5. FITUR 1: TRANSFER ANTAR REKENING =================
+    function openModalTransfer() {
+      const fromSel = document.getElementById('transferFromSelect');
+      const toSel = document.getElementById('transferToSelect');
+      fromSel.innerHTML = '';
+      toSel.innerHTML = '';
+
+      wallets.forEach((w, idx) => {
+        const opt1 = document.createElement('option');
+        opt1.value = w.name;
+        opt1.text = w.name + ' (Rp ' + w.balance.toLocaleString('id-ID') + ')';
+        fromSel.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = w.name;
+        opt2.text = w.name;
+        if (idx === 1) opt2.selected = true;
+        toSel.appendChild(opt2);
+      });
+
+      toggleModal('modal-transfer-fund');
+    }
+
+    function handleTransferSubmit(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('transferAmountInput').value);
+      const fromName = document.getElementById('transferFromSelect').value;
+      const toName = document.getElementById('transferToSelect').value;
+      const note = document.getElementById('transferNoteInput').value || 'Pindah Saldo';
+
+      if (fromName === toName) {
+        alert('Rekening asal dan tujuan tidak boleh sama.');
+        return;
+      }
+
+      const fromW = wallets.find(w => w.name === fromName);
+      const toW = wallets.find(w => w.name === toName);
+
+      if (fromW && toW) {
+        if (fromW.balance < amount) {
+          if (!confirm('Saldo di ' + fromName + ' (Rp ' + fromW.balance.toLocaleString('id-ID') + ') kurang dari nominal transfer. Tetap lanjutkan?')) return;
+        }
+
+        fromW.balance -= amount;
+        toW.balance += amount;
+
+        // Record transfer in transaction history
+        transactions.unshift({
+          id: 'tx-' + Date.now(),
+          note: '🔁 ' + note + ' (' + fromW.shortName + ' → ' + toW.shortName + ')',
+          amount: amount,
+          type: 'TRANSFER',
+          category: 'Transfer Rekening',
+          wallet: fromName + ' → ' + toName,
+          tags: ['#Transfer'],
+          time: 'Hari ini, ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        });
+
+        saveState();
+        renderWallets();
+        renderTransactions();
+        filterWalletSpecificHistory();
+        renderSpendingHeatmap();
+        updateTotals();
+        toggleModal('modal-transfer-fund');
+        document.getElementById('transferFundForm').reset();
+        alert('Sukses transfer Rp ' + amount.toLocaleString('id-ID') + ' dari ' + fromName + ' ke ' + toName + '!');
+      }
+    }
+
+    // ================= 6. FITUR 3: RECURRING BILLS ENGINE =================
+    function renderRecurringBills() {
+      const grid = document.getElementById('recurringBillsGrid');
+      const sel = document.getElementById('recurringWalletSelect');
+      if (sel) {
+        sel.innerHTML = '';
+        wallets.forEach(w => {
+          const opt = document.createElement('option');
+          opt.value = w.name;
+          opt.text = w.name;
+          sel.appendChild(opt);
+        });
+      }
+
+      grid.innerHTML = '';
+      if (recurringBills.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-4 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            Belum ada tagihan rutin. Klik <b>+ Tambah Tagihan</b> untuk mencatat beban bulanan (WiFi, Kos, Spotify).
+          </div>
+        `;
+        return;
+      }
+
+      const todayDate = new Date().getDate();
+      recurringBills.forEach(b => {
+        const daysLeft = b.dueDate - todayDate;
+        let dueBadge = '';
+        if (daysLeft === 0) dueBadge = '<span class="text-[9px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">Jatuh Tempo Hari Ini!</span>';
+        else if (daysLeft > 0) dueBadge = `<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">${daysLeft} hari lagi</span>`;
+        else dueBadge = `<span class="text-[9px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">Lewat ${Math.abs(daysLeft)} hari</span>`;
+
+        const card = document.createElement('div');
+        card.className = 'p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2';
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm text-slate-800">
+              <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-xs text-slate-900 truncate">${b.name}</div>
+              <div class="text-[10px] text-slate-500 flex items-center gap-1.5 truncate">
+                <span>Tgl ${b.dueDate}</span>
+                <span>•</span>
+                <span class="font-bold text-slate-700">Rp ${b.amount.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            ${dueBadge}
+            <button onclick="payRecurringBill('${b.id}')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold shadow-sm transition" title="Bayar & Catat Pengeluaran">
+              Bayar
+            </button>
+            <button onclick="deleteRecurringBill('${b.id}')" class="p-1 rounded-lg text-slate-300 hover:text-rose-600 transition" title="Hapus Jadwal">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function handleAddRecurring(e) {
+      e.preventDefault();
+      const name = document.getElementById('recurringNameInput').value;
+      const amount = parseFloat(document.getElementById('recurringAmountInput').value);
+      const dueDate = parseInt(document.getElementById('recurringDueInput').value);
+      const wallet = document.getElementById('recurringWalletSelect').value;
+
+      recurringBills.push({
+        id: 'rec-' + Date.now(),
+        name, amount, dueDate, wallet
+      });
+
+      saveState();
+      renderRecurringBills();
+      toggleModal('modal-add-recurring');
+      document.getElementById('addRecurringForm').reset();
+    }
+
+    function payRecurringBill(recId) {
+      const b = recurringBills.find(item => item.id === recId);
+      if (!b) return;
+
+      if (confirm('Bayar tagihan "' + b.name + '" sebesar Rp ' + b.amount.toLocaleString('id-ID') + ' dari ' + b.wallet + '?')) {
+        transactions.unshift({
+          id: 'tx-' + Date.now(),
+          note: 'Tagihan Rutin: ' + b.name,
+          amount: b.amount,
+          type: 'EXPENSE',
+          category: 'Tagihan & Utilitas',
+          wallet: b.wallet,
+          tags: ['#TagihanRutin'],
+          time: 'Hari ini, ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        });
+
+        const w = wallets.find(wal => wal.name === b.wallet);
+        if (w) w.balance -= b.amount;
+
+        saveState();
+        renderWallets();
+        renderTransactions();
+        filterWalletSpecificHistory();
+        renderSpendingHeatmap();
+        updateTotals();
+        alert('Tagihan ' + b.name + ' berhasil dibayar dan dicatat!');
+      }
+    }
+
+    function deleteRecurringBill(recId) {
+      if (confirm('Hapus jadwal tagihan rutin ini?')) {
+        recurringBills = recurringBills.filter(b => b.id !== recId);
+        saveState();
+        renderRecurringBills();
+      }
+    }
+
+        // ================= 7. FITUR 5: ULTRA-COMPACT EXPANDABLE MONOCHROME STRIP (JAKARTA WIB) =================
+    let isCalendarExpanded = false;
+
+    function getJakartaNow() {
+      const now = new Date();
+      // Adjust to Asia/Jakarta timezone
+      const jakartaString = now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+      return new Date(jakartaString);
+    }
+
+    function toggleCalendarView() {
+      isCalendarExpanded = !isCalendarExpanded;
+      const titleEl = document.getElementById('calendarTitle');
+      const subEl = document.getElementById('calendarSubtitle');
+      const iconEl = document.getElementById('expandCalendarIcon');
+
+      if (isCalendarExpanded) {
+        if (titleEl) titleEl.innerText = 'Aktivitas Belanja Bulanan';
+        const jakartaDate = getJakartaNow();
+        const monthName = jakartaDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        if (subEl) subEl.innerText = 'Bulan ' + monthName + ' (WIB)';
+        if (iconEl) iconEl.setAttribute('data-lucide', 'chevron-up');
+      } else {
+        if (titleEl) titleEl.innerText = 'Aktivitas Belanja 7 Hari Terakhir';
+        if (subEl) subEl.innerText = 'Zona Waktu Indonesia (WIB)';
+        if (iconEl) iconEl.setAttribute('data-lucide', 'chevron-down');
+      }
+
+      renderSpendingHeatmap();
+      lucide.createIcons();
+    }
+
+    function getExpenseForDate(targetDate) {
+      const targetDay = targetDate.getDate();
+      const targetMonth = targetDate.getMonth();
+      const targetYear = targetDate.getFullYear();
+
+      const jakartaToday = getJakartaNow();
+      const isToday = (targetDay === jakartaToday.getDate() && targetMonth === jakartaToday.getMonth() && targetYear === jakartaToday.getFullYear());
+
+      let total = 0;
+      transactions.forEach(t => {
+        if (t.type === 'EXPENSE') {
+          if (isToday && t.time && t.time.includes('Hari ini')) {
+            total += t.amount;
+          } else if (t.isoDate) {
+            const tDate = new Date(t.isoDate);
+            if (tDate.getDate() === targetDay && tDate.getMonth() === targetMonth && tDate.getFullYear() === targetYear) {
+              total += t.amount;
+            }
+          }
+        }
+      });
+      return total;
+    }
+
+    function renderSpendingHeatmap() {
+      const grid = document.getElementById('spendingHeatmapGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      const jakartaToday = getJakartaNow();
+      const days = [];
+
+      if (!isCalendarExpanded) {
+        // 7 Hari Terakhir
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(jakartaToday);
+          d.setDate(jakartaToday.getDate() - i);
+          days.push(d);
+        }
+      } else {
+        // Full Bulan Berjalan (1 sampai akhir bulan)
+        const year = jakartaToday.getFullYear();
+        const month = jakartaToday.getMonth();
+        const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let dayNum = 1; dayNum <= totalDaysInMonth; dayNum++) {
+          const d = new Date(year, month, dayNum);
+          days.push(d);
+        }
+      }
+
+      days.forEach((day) => {
+        const isToday = (day.getDate() === jakartaToday.getDate() && day.getMonth() === jakartaToday.getMonth() && day.getFullYear() === jakartaToday.getFullYear());
+        const dayName = dayNames[day.getDay()];
+        const dayNum = day.getDate();
+        const expense = getExpenseForDate(day);
+
+        // Strict Monochrome: Black, Gray, White
+        let styleClass = 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100';
+        let dotClass = 'bg-white border border-slate-300';
+        
+        if (expense > 0 && expense <= 100000) {
+          styleClass = 'bg-slate-200 text-slate-900 border border-slate-300';
+          dotClass = 'bg-slate-500';
+        } else if (expense > 100000) {
+          styleClass = 'bg-slate-900 text-white border border-slate-900 shadow-sm';
+          dotClass = 'bg-white';
+        }
+
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = `py-2 px-1 rounded-2xl flex flex-col items-center justify-between gap-1 transition active:scale-95 ${styleClass} ${isToday ? 'ring-2 ring-slate-900 ring-offset-1' : ''}`;
+        pill.innerHTML = `
+          <span class="text-[9px] uppercase font-bold opacity-70">${dayName}</span>
+          <span class="text-xs font-black">${dayNum}</span>
+          <div class="w-1.5 h-1.5 rounded-full ${dotClass} mt-0.5"></div>
+        `;
+        pill.onclick = () => {
+          const formattedDate = day.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+          document.getElementById('heatmapSelectedDayInfo').innerHTML = 
+            `<b>${formattedDate} (WIB)</b>: Total Pengeluaran <span class="font-bold text-slate-900">Rp ${expense.toLocaleString('id-ID')}</span>`;
+        };
+        grid.appendChild(pill);
+      });
+      lucide.createIcons();
+    }
+
+    // ================= 8. FITUR 7: CUSTOM KATEGORI & MULTI-TAGS =================
+    function setQuickCategory(catName) {
+      document.getElementById('formCategoryCustom').value = catName;
+    }
+
+    function setPeriod(period) {
+      currentPeriod = period;
+      ['daily', 'weekly', 'monthly', 'yearly'].forEach(p => {
+        const pill = document.getElementById('pill-' + p);
+        if (pill) pill.className = p === period ? 'py-1.5 rounded-xl active-pill transition' : 'py-1.5 rounded-xl text-slate-600 transition';
+      });
+
+      const inLabel = document.getElementById('overflowInLabel');
+      const outLabel = document.getElementById('overflowOutLabel');
+      if (period === 'daily') { inLabel.innerText = 'PEMASUKAN HARIAN'; outLabel.innerText = 'PENGELUARAN HARIAN'; }
+      else if (period === 'weekly') { inLabel.innerText = 'PEMASUKAN MINGGUAN'; outLabel.innerText = 'PENGELUARAN MINGGUAN'; }
+      else if (period === 'monthly') { inLabel.innerText = 'PEMASUKAN BULANAN'; outLabel.innerText = 'PENGELUARAN BULANAN'; }
+      else if (period === 'yearly') { inLabel.innerText = 'PEMASUKAN TAHUNAN'; outLabel.innerText = 'PENGELUARAN TAHUNAN'; }
+
+      updateTotals();
+    }
+
+    function toggleModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.toggle('hidden');
+        lucide.createIcons();
+      }
+    }
+
+    function openModalAddTx() {
+      toggleModal('modal-add-tx');
+    }
+
+    function togglePrivacyMode() {
+      isPrivacyMode = !isPrivacyMode;
+      updateTotals();
+    }
+
+    function setTxFormType(type) {
+      currentFormType = type;
+      document.getElementById('form-type-expense').className = type === 'EXPENSE' ? 'py-1.5 rounded-lg bg-slate-900 text-white shadow' : 'py-1.5 rounded-lg text-slate-600';
+      document.getElementById('form-type-income').className = type === 'INCOME' ? 'py-1.5 rounded-lg bg-slate-900 text-white shadow' : 'py-1.5 rounded-lg text-slate-600';
+    }
+
+    function renderWallets() {
+      const grid = document.getElementById('walletsGridContainer');
+      grid.innerHTML = '';
+      wallets.forEach(w => {
+        const card = document.createElement('div');
+        card.className = 'p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition cursor-pointer flex items-center justify-between';
+        card.onclick = () => openEditWallet(w.id, w.name, w.balance);
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+              <img src="${w.logo}" alt="${w.name}" class="w-full h-full object-contain">
+            </div>
+            <div>
+              <div class="font-bold text-xs text-slate-900 truncate">${w.name}</div>
+              <div class="text-[10px] text-slate-400">Klik untuk atur saldo</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-mono font-bold text-xs text-slate-900">Rp ${w.balance.toLocaleString('id-ID')}</div>
+            <span class="text-[9px] text-slate-400 font-semibold flex items-center justify-end gap-0.5">Edit <i data-lucide="edit-2" class="w-2.5 h-2.5"></i></span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function openEditWallet(id, name, balance) {
+      document.getElementById('editWalletId').value = id;
+      document.getElementById('editWalletTitle').innerText = 'Atur Saldo: ' + name;
+      document.getElementById('editWalletAmount').value = balance;
+      toggleModal('modal-edit-wallet');
+    }
+
+    function handleWalletBalanceSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('editWalletId').value;
+      const newAmount = parseFloat(document.getElementById('editWalletAmount').value) || 0;
+      const target = wallets.find(w => w.id === id);
+      
+      if (target) {
+        const oldAmount = target.balance;
+        const delta = newAmount - oldAmount;
+
+        if (delta !== 0) {
+          const isPos = delta > 0;
+          transactions.unshift({
+            id: 'tx-' + Date.now(),
+            note: 'Penyesuaian Saldo: ' + target.name,
+            amount: Math.abs(delta),
+            type: isPos ? 'INCOME' : 'EXPENSE',
+            category: 'Investasi & Tabungan',
+            wallet: target.name,
+            tags: ['#KoreksiSaldo'],
+            time: 'Hari ini, ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+          });
+        }
+
+        target.balance = newAmount;
+        saveState();
+        renderWallets();
+        renderTransactions();
+        filterWalletSpecificHistory();
+        renderSpendingHeatmap();
+        updateTotals();
+        buildBankPickerList();
+        toggleModal('modal-edit-wallet');
+        if (delta !== 0) {
+          alert('Saldo ' + target.name + ' diperbarui! Riwayat mutasi (' + (delta > 0 ? '+' : '-') + 'Rp ' + Math.abs(delta).toLocaleString('id-ID') + ') otomatis dicatat.');
+        }
+      }
+    }
+
+    function handleBudgetSubmit(e) {
+      e.preventDefault();
+      budgetLimit = parseFloat(document.getElementById('budgetLimitInput').value) || 0;
+      saveState();
+      updateTotals();
+      toggleModal('modal-set-budget');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('formAmount').value);
+      const note = document.getElementById('formNote').value;
+      const category = document.getElementById('formCategoryCustom').value || 'Umum';
+      const wallet = document.getElementById('formWallet').value;
+      const rawTags = document.getElementById('formTags').value || '';
+      const tags = rawTags.split(' ').map(t => t.trim()).filter(t => t.startsWith('#'));
+
+      transactions.unshift({
+        id: 'tx-' + Date.now(),
+        note, amount, type: currentFormType, category, wallet, tags,
+        time: 'Hari ini, ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      });
+
+      const w = wallets.find(wal => wal.name === wallet);
+      if (w) {
+        if (currentFormType === 'EXPENSE') w.balance -= amount;
+        else w.balance += amount;
+      }
+
+      saveState();
+      renderWallets();
+      renderTransactions();
+      filterWalletSpecificHistory();
+      renderSpendingHeatmap();
+      updateTotals();
+      toggleModal('modal-add-tx');
+      document.getElementById('addTxForm').reset();
+    }
+
+    function deleteTransaction(txId) {
+      const tx = transactions.find(t => t.id === txId);
+      if (!tx) return;
+      if (confirm('Hapus transaksi "' + tx.note + '"? (Nominal Rp ' + tx.amount.toLocaleString('id-ID') + ' akan otomatis dipulihkan ke ' + tx.wallet + ')')) {
+        const w = wallets.find(wal => wal.name === tx.wallet);
+        if (w) {
+          if (tx.type === 'EXPENSE') w.balance += tx.amount;
+          else if (tx.type === 'INCOME') w.balance -= tx.amount;
+        }
+        transactions = transactions.filter(t => t.id !== txId);
+        saveState();
+        renderWallets();
+        renderTransactions();
+        filterWalletSpecificHistory();
+        renderSpendingHeatmap();
+        updateTotals();
+      }
+    }
+
+    function deleteSavingsTarget(savId) {
+      const s = savingsData.find(sav => sav.id === savId);
+      if (!s) return;
+      if (confirm('Hapus pos tabungan "' + s.target + '"?')) {
+        savingsData = savingsData.filter(sav => sav.id !== savId);
+        saveState();
+        renderSavings();
+        updateTotals();
+      }
+    }
+
+    function resetAllDataFactory() {
+      if (confirm('Yakin ingin MENGHAPUS SEMUA DATA dan mengulang dari Rp 0?')) {
+        transactions = [];
+        savingsData = [];
+        recurringBills = [];
+        budgetLimit = 0;
+        wallets.forEach(w => w.balance = 0);
+        saveState();
+        renderWallets();
+        renderTransactions();
+        renderSavings();
+        renderRecurringBills();
+        renderSpendingHeatmap();
+        filterWalletSpecificHistory();
+        updateTotals();
+        alert('Seluruh data berhasil dibersihkan ke Rp 0!');
+      }
+    }
+
+    function renderSavings() {
+      const container = document.getElementById('savingsContainer');
+      const select = document.getElementById('savingsTargetSelect');
+      container.innerHTML = '';
+      select.innerHTML = '';
+
+      if (savingsData.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-6 text-center text-xs text-slate-500 bg-white/60 rounded-2xl border border-dashed border-slate-300">
+            <p class="font-bold text-slate-700 mb-1">Belum ada pos tabungan</p>
+            <p class="text-[11px] text-slate-500">Klik tombol <b>+ Tambah Target</b> di atas untuk mulai membuat pos tabungan Anda.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let totalSavings = 0;
+      savingsData.forEach(s => {
+        totalSavings += s.amount;
+        const hasGoal = s.goal > 0;
+        const pct = hasGoal ? Math.min(100, (s.amount / s.goal) * 100).toFixed(1) : null;
+
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 relative';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-slate-900">🪙 ${s.target}</span>
+            <div class="flex items-center gap-1.5">
+              ${hasGoal ? `<span class="text-[10px] font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">${pct}%</span>` : `<span class="text-[10px] text-slate-400 font-semibold">Fleksibel</span>`}
+              <button onclick="deleteSavingsTarget('${s.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Pos Tabungan">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[11px] text-slate-600 mb-1">
+              <span>Terkumpul: <b>Rp ${s.amount.toLocaleString('id-ID')}</b></span>
+              ${hasGoal ? `<span class="text-slate-400">Target: Rp ${s.goal.toLocaleString('id-ID')}</span>` : ''}
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-slate-900 h-full rounded-full" style="width: ${pct || 100}%"></div>
+            </div>
+          </div>
+          <div class="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-slate-100">
+            <span>${s.note || 'Tabungan aktif'}</span>
+            <button onclick="promptSetorSavings('${s.id}')" class="text-slate-900 font-bold hover:underline">+ Setor Dana</button>
+          </div>
+        `;
+        container.appendChild(card);
+
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.text = s.target + ' (Rp ' + s.amount.toLocaleString('id-ID') + ')';
+        select.appendChild(opt);
+      });
+
+      lucide.createIcons();
+    }
+
+    function handleCreateTarget(e) {
+      e.preventDefault();
+      const name = document.getElementById('targetNameInput').value;
+      const goal = parseFloat(document.getElementById('targetGoalInput').value) || 0;
+
+      savingsData.push({
+        id: 'sav-' + Date.now(),
+        target: name,
+        amount: 0,
+        goal: goal,
+        note: goal > 0 ? 'Target: Rp ' + goal.toLocaleString('id-ID') : 'Tabungan Fleksibel'
+      });
+
+      saveState();
+      renderSavings();
+      toggleModal('modal-add-savings-target');
+      document.getElementById('createTargetForm').reset();
+    }
+
+    function promptSetorSavings(savId) {
+      document.getElementById('savingsTargetSelect').value = savId;
+      toggleModal('modal-setor-savings');
+    }
+
+    function handleSavingsSubmit(e) {
+      e.preventDefault();
+      const savId = document.getElementById('savingsTargetSelect').value;
+      const amount = parseFloat(document.getElementById('savingsAmountInput').value);
+      const wallet = document.getElementById('savingsSourceWallet').value;
+
+      const targetSav = savingsData.find(s => s.id === savId);
+      if (targetSav) {
+        targetSav.amount += amount;
+        transactions.unshift({
+          id: 'tx-' + Date.now(),
+          note: 'Setor Tabungan: ' + targetSav.target,
+          amount: amount,
+          type: 'EXPENSE',
+          category: 'Investasi & Tabungan',
+          wallet: wallet,
+          tags: ['#Tabungan'],
+          time: 'Hari ini, ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        });
+
+        const w = wallets.find(wal => wal.name === wallet);
+        if (w) w.balance -= amount;
+
+        saveState();
+        renderWallets();
+        renderTransactions();
+        renderSavings();
+        filterWalletSpecificHistory();
+        renderSpendingHeatmap();
+        updateTotals();
+        toggleModal('modal-setor-savings');
+        document.getElementById('addSavingsForm').reset();
+        alert('Berhasil menabung Rp ' + amount.toLocaleString('id-ID') + '!');
+      }
+    }
+
+    function getWalletLogo(walletName) {
+      const w = wallets.find(wal => wal.name === walletName);
+      return w ? w.logo : './assets/logos/cash.jpg';
+    }
+
+    function renderTransactions(filterText = '') {
+      const container = document.getElementById('transactionListContainer');
+      container.innerHTML = '';
+
+      if (transactions.length === 0) {
+        container.innerHTML = `
+          <div class="py-10 text-center text-xs text-slate-400">
+            <i data-lucide="receipt" class="w-8 h-8 text-slate-300 mx-auto mb-2"></i>
+            <p class="font-semibold text-slate-600">Belum ada catatan transaksi</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Klik tombol <b>+ Catat</b> di pojok kanan atas untuk memulai.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const filtered = transactions.filter(t => 
+        t.note.toLowerCase().includes(filterText.toLowerCase()) || 
+        t.category.toLowerCase().includes(filterText.toLowerCase()) ||
+        t.wallet.toLowerCase().includes(filterText.toLowerCase()) ||
+        (t.tags && t.tags.some(tag => tag.toLowerCase().includes(filterText.toLowerCase())))
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="py-6 text-center text-xs text-slate-400">Tidak ada transaksi yang cocok.</div>';
+        return;
+      }
+
+      filtered.forEach(t => {
+        const isExp = t.type === 'EXPENSE';
+        const isTransfer = t.type === 'TRANSFER';
+        const logo = getWalletLogo(t.wallet.split(' → ')[0]);
+        const item = document.createElement('div');
+        item.className = 'py-3 flex items-center justify-between gap-3 hover:bg-slate-50 px-1 rounded-xl transition';
+        const safeNote = escapeHtml(t.note);
+        const safeCat = escapeHtml(t.category);
+        const safeWallet = escapeHtml(t.wallet);
+        const safeTime = escapeHtml(t.time);
+        const safeTags = (t.tags && Array.isArray(t.tags)) ? t.tags.map(tg => `<span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${escapeHtml(tg)}</span>`).join('') : '';
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+              <img src="${logo}" alt="${safeWallet}" class="w-full h-full object-contain">
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5">
+                <span>${safeNote}</span>
+                ${safeTags}
+              </div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
+                <span>${safeCat}</span>
+                <span>•</span>
+                <span>${safeTime}</span>
+                <span>•</span>
+                <span class="font-semibold text-slate-700">${safeWallet}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <div class="font-bold text-xs ${isTransfer ? 'text-slate-600' : isExp ? 'text-slate-900' : 'text-emerald-600'}">
+              ${isTransfer ? '🔁 ' : isExp ? '- ' : '+ '} Rp ${Number(t.amount).toLocaleString('id-ID')}
+            </div>
+            <button onclick="deleteTransaction('${escapeHtml(t.id)}')" class="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus / Batalkan Transaksi">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function filterTransactions() {
+      const q = document.getElementById('searchTxInput') ? document.getElementById('searchTxInput').value : '';
+      renderTransactions(q);
+    }
+
+    function filterWalletSpecificHistory() {
+      const container = document.getElementById('walletHistoryContainer');
+      const selected = currentFilterWallet;
+      
+      const sub = document.getElementById('selectedWalletHistorySubtitle');
+      if (sub) sub.innerText = selected === 'ALL' ? 'Menampilkan mutasi seluruh dompet & rekening' : 'Riwayat mutasi khusus: ' + selected;
+
+      container.innerHTML = '';
+      const list = selected === 'ALL' ? transactions : transactions.filter(t => t.wallet.includes(selected));
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="py-8 text-center text-xs text-slate-400">Belum ada catatan mutasi untuk rekening ini.</div>';
+        return;
+      }
+
+      list.forEach(t => {
+        const isExp = t.type === 'EXPENSE';
+        const isTransfer = t.type === 'TRANSFER';
+        const logo = getWalletLogo(t.wallet.split(' → ')[0]);
+        const item = document.createElement('div');
+        item.className = 'py-3 flex items-center justify-between gap-3 hover:bg-slate-50 px-1 rounded-xl transition';
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+              <img src="${logo}" alt="${t.wallet}" class="w-full h-full object-contain">
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-xs text-slate-900 truncate">${t.note}</div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
+                <span>${t.category}</span>
+                <span>•</span>
+                <span>${t.time}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <div class="font-bold text-xs ${isTransfer ? 'text-slate-600' : isExp ? 'text-slate-900' : 'text-emerald-600'}">
+              ${isTransfer ? '🔁 ' : isExp ? '- ' : '+ '} Rp ${t.amount.toLocaleString('id-ID')}
+            </div>
+            <button onclick="deleteTransaction('${t.id}')" class="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Transaksi">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function updateTotals() {
+      let inc = 0, exp = 0;
+      transactions.forEach(t => {
+        if (t.type === 'INCOME') inc += t.amount;
+        else if (t.type === 'EXPENSE') exp += t.amount;
+      });
+
+      let totalWalletBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
+
+      document.getElementById('displayIncome').innerText = 'Rp ' + inc.toLocaleString('id-ID');
+      document.getElementById('displayExpense').innerText = 'Rp ' + exp.toLocaleString('id-ID');
+      const surplus = inc - exp;
+      document.getElementById('displaySurplus').innerText = (surplus >= 0 ? '+' : '-') + 'Rp ' + Math.abs(surplus).toLocaleString('id-ID');
+      
+      const balanceEl = document.getElementById('displayBalance');
+      balanceEl.innerText = isPrivacyMode ? 'Rp ••••••••••' : 'Rp ' + totalWalletBalance.toLocaleString('id-ID');
+
+      // Update Budget Ring
+      const bDisplay = document.getElementById('budgetDisplay');
+      const bBar = document.getElementById('budgetBarProgress');
+      const bCircle = document.getElementById('budgetCircleProgress');
+      const bPct = document.getElementById('budgetPercentDisplay');
+      const bSub = document.getElementById('budgetSubtext');
+
+      if (budgetLimit > 0) {
+        const usedPct = Math.min(100, (exp / budgetLimit) * 100);
+        const safePct = Math.max(0, 100 - usedPct).toFixed(0);
+        bDisplay.innerText = 'Rp ' + exp.toLocaleString('id-ID') + ' / Rp ' + budgetLimit.toLocaleString('id-ID');
+        bBar.style.width = usedPct + '%';
+        bPct.innerText = safePct + '%';
+        const offset = 163 - (163 * (safePct / 100));
+        bCircle.style.strokeDashoffset = offset;
+        bSub.innerText = 'Sisa anggaran aman: Rp ' + Math.max(0, budgetLimit - exp).toLocaleString('id-ID');
+      } else {
+        bDisplay.innerText = 'Rp ' + exp.toLocaleString('id-ID') + ' / Belum Diatur';
+        bBar.style.width = '0%';
+        bPct.innerText = '100%';
+        bCircle.style.strokeDashoffset = '0';
+        bSub.innerText = 'Klik "Atur Limit" untuk memasang batas anggaran.';
+      }
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('cashflowChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+          datasets: [
+            {
+              label: 'Pemasukan',
+              data: [0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: '#18181b',
+              borderRadius: 6,
+              barThickness: 12
+            },
+            {
+              label: 'Pengeluaran',
+              data: [0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: '#a1a1aa',
+              borderRadius: 6,
+              barThickness: 12
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 9, family: 'Outfit' } } },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                callback: function(val) { return 'Rp ' + val.toLocaleString('id-ID'); },
+                font: { size: 9, family: 'Outfit' }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function downloadRealPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFillColor(18, 18, 21);
+      doc.rect(0, 0, 210, 35, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('IN MONEY — LAPORAN KEUANGAN & ARUS KAS', 14, 18);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('In Money • Tanggal Cetak: ' + new Date().toLocaleDateString('id-ID'), 14, 26);
+
+      let totalInc = 0, totalExp = 0;
+      transactions.forEach(t => {
+        if (t.type === 'INCOME') totalInc += t.amount;
+        else if (t.type === 'EXPENSE') totalExp += t.amount;
+      });
+
+      const tableData = transactions.length > 0 ? transactions.map((t, idx) => [
+        idx + 1,
+        t.time,
+        t.note,
+        t.category,
+        t.wallet,
+        t.type === 'INCOME' ? 'Pemasukan' : t.type === 'TRANSFER' ? 'Transfer' : 'Pengeluaran',
+        (t.type === 'INCOME' ? '+ ' : t.type === 'TRANSFER' ? '🔁 ' : '- ') + 'Rp ' + t.amount.toLocaleString('id-ID')
+      ]) : [[1, '-', 'Belum ada transaksi', '-', '-', '-', 'Rp 0']];
+
+      doc.autoTable({
+        startY: 45,
+        head: [['No', 'Waktu', 'Keterangan', 'Kategori', 'Dompet/Bank', 'Tipe', 'Nominal']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [18, 18, 21], fontStyle: 'bold' },
+        styles: { fontSize: 8, font: 'helvetica' }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total Pemasukan: Rp ' + totalInc.toLocaleString('id-ID'), 14, finalY);
+      doc.text('Total Pengeluaran: Rp ' + totalExp.toLocaleString('id-ID'), 14, finalY + 6);
+      doc.text('Cashflow Surplus/Defisit: Rp ' + (totalInc - totalExp).toLocaleString('id-ID'), 14, finalY + 12);
+
+      doc.save('In_Money_Laporan_Keuangan_' + Date.now() + '.pdf');
+      alert('Laporan PDF Keuangan In Money berhasil diunduh!');
+    }
+
+    function downloadSavingsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFillColor(18, 18, 21);
+      doc.rect(0, 0, 210, 35, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('IN MONEY — LAPORAN MUTASI TABUNGAN', 14, 18);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('In Money Savings Engine • Tanggal Cetak: ' + new Date().toLocaleDateString('id-ID'), 14, 26);
+
+      let totalSav = 0;
+      const savingsTableData = savingsData.length > 0 ? savingsData.map((s, idx) => {
+        totalSav += s.amount;
+        const hasGoal = s.goal > 0;
+        return [
+          idx + 1,
+          s.target,
+          'Rp ' + s.amount.toLocaleString('id-ID'),
+          hasGoal ? 'Rp ' + s.goal.toLocaleString('id-ID') : 'Fleksibel',
+          hasGoal ? ((s.amount / s.goal) * 100).toFixed(1) + '%' : 'N/A',
+          s.note || 'Tabungan Aktif'
+        ];
+      }) : [[1, 'Belum ada pos tabungan', 'Rp 0', 'Fleksibel', 'N/A', '-']];
+
+      doc.autoTable({
+        startY: 45,
+        head: [['No', 'Nama Tabungan', 'Saldo Terkumpul', 'Target', 'Progress', 'Keterangan']],
+        body: savingsTableData,
+        theme: 'striped',
+        headStyles: { fillColor: [18, 18, 21], fontStyle: 'bold' },
+        styles: { fontSize: 8, font: 'helvetica' }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total Keseluruhan Saldo Tabungan: Rp ' + totalSav.toLocaleString('id-ID'), 14, finalY);
+
+      doc.save('In_Money_Laporan_Tabungan_' + Date.now() + '.pdf');
+      alert('Laporan PDF Mutasi Tabungan In Money berhasil diunduh!');
+    }
+
+    function exportJsonFile() {
+      const backupData = {
+        app: 'In Money',
+        version: '8.0.0',
+        exportedAt: new Date().toISOString(),
+        transactions: transactions,
+        savings: savingsData,
+        recurring: recurringBills,
+        wallets: wallets,
+        budgetLimit: budgetLimit
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "in_money_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+        function importJsonFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Max file size 5MB defense
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Ukuran file cadangan terlalu besar (Maksimal 5MB).');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (typeof parsed !== 'object' || parsed === null) throw new Error('Format JSON tidak valid');
+
+          // Strict type and field sanitization
+          if (Array.isArray(parsed.transactions)) {
+            transactions = parsed.transactions.filter(t => t && typeof t.note === 'string' && typeof t.amount === 'number').map(t => ({
+              id: String(t.id || 'tx-' + Date.now()),
+              note: String(t.note).substring(0, 100),
+              amount: Math.abs(Number(t.amount) || 0),
+              type: ['INCOME', 'EXPENSE', 'TRANSFER'].includes(t.type) ? t.type : 'EXPENSE',
+              category: String(t.category || 'Umum').substring(0, 50),
+              wallet: String(t.wallet || 'Uang Tunai Cash').substring(0, 50),
+              tags: Array.isArray(t.tags) ? t.tags.map(tg => String(tg).substring(0, 30)) : [],
+              time: String(t.time || 'Waktu dicatat').substring(0, 50)
+            }));
+          }
+
+          if (Array.isArray(parsed.savings)) {
+            savingsData = parsed.savings.filter(s => s && typeof s.target === 'string').map(s => ({
+              id: String(s.id || 'sav-' + Date.now()),
+              target: String(s.target).substring(0, 50),
+              amount: Math.abs(Number(s.amount) || 0),
+              goal: Math.abs(Number(s.goal) || 0),
+              note: String(s.note || '').substring(0, 100)
+            }));
+          }
+
+          if (Array.isArray(parsed.recurring)) {
+            recurringBills = parsed.recurring.filter(r => r && typeof r.name === 'string').map(r => ({
+              id: String(r.id || 'rec-' + Date.now()),
+              name: String(r.name).substring(0, 50),
+              amount: Math.abs(Number(r.amount) || 0),
+              dueDate: Math.min(31, Math.max(1, parseInt(r.dueDate) || 1)),
+              wallet: String(r.wallet || 'Uang Tunai Cash').substring(0, 50)
+            }));
+          }
+
+          if (Array.isArray(parsed.wallets)) {
+            wallets = wallets.map(w => {
+              const matched = parsed.wallets.find(pw => pw.name === w.name || pw.id === w.id);
+              if (matched && typeof matched.balance === 'number') {
+                w.balance = Number(matched.balance) || 0;
+              }
+              return w;
+            });
+          }
+
+          if (typeof parsed.budgetLimit === 'number') {
+            budgetLimit = Math.abs(Number(parsed.budgetLimit) || 0);
+          }
+
+          saveState();
+          renderWallets();
+          renderTransactions();
+          renderSavings();
+          renderRecurringBills();
+          renderSpendingHeatmap();
+          filterWalletSpecificHistory();
+          updateTotals();
+          alert('🛡️ Sukses memulihkan & memverifikasi integritas data In Money!');
+        } catch (err) {
+          alert('Gagal memulihkan file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
