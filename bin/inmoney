@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""
+In Money CLI — Enterprise Financial & Cashflow PWA Terminal Runner
+Author: Moch. Erik Irriansyah (NIM 04123003 — Universitas Narotama)
+"""
+import sys
+import os
+import http.server
+import socketserver
+import webbrowser
+
+C_RESET = "\033[0m"
+C_BOLD = "\033[1m"
+C_GREEN = "\033[92m"
+C_CYAN = "\033[96m"
+C_YELLOW = "\033[93m"
+C_GRAY = "\033[90m"
+
+BANNER_TEXT = r"""
+   ___          __  __                          
+  |_ _|_ __    |  \/  | ___  _ __   ___ _   _   
+   | || '_ \   | |\/| |/ _ \| '_ \ / _ \ | | |  
+   | || | | |  | |  | | (_) | | | |  __/ |_| |  
+  |___|_| |_|  |_|  |_|\___/|_| |_|\___|\__, |  
+                                        |___/   """
+
+BANNER = f"{C_CYAN}{C_BOLD}{BANNER_TEXT}\n{C_RESET}{C_GRAY}  Enterprise Offline-First PWA Financial & Cashflow Engine\n  Author: Moch. Erik Irriansyah (NIM 04123003 — Universitas Narotama)\n{C_RESET}"
+
+PORT = 4321
+
+def open_web():
+    url = "https://mocherik.github.io/in-money/"
+    print(f"\n{C_GREEN}Membuka {url} di browser...{C_RESET}\n")
+    if sys.platform == "darwin":
+        os.system(f"open {url}")
+    else:
+        webbrowser.open(url)
+
+def serve_local():
+    # Find preview directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(current_dir)
+    preview_dir = os.path.join(root_dir, "preview")
+    
+    if not os.path.exists(preview_dir):
+        # Fallback to online app if run standalone without clone
+        open_web()
+        return
+
+    os.chdir(preview_dir)
+    handler = http.server.SimpleHTTPRequestHandler
+    try:
+        with socketserver.TCPServer(("", PORT), handler) as httpd:
+            print(f"\n{C_GREEN}🚀 In Money berjalan di http://localhost:{PORT}{C_RESET}")
+            print(f"{C_GRAY}Tekan Ctrl+C untuk menghentikan server.{C_RESET}\n")
+            webbrowser.open(f"http://localhost:{PORT}")
+            httpd.serve_forever()
+    except KeyboardInterrupt:
+        print(f"\n{C_YELLOW}Server dihentikan.{C_RESET}\n")
+    except Exception as e:
+        print(f"Error starting server: {e}")
+        open_web()
+
+def interactive_menu():
+    print(BANNER)
+    while True:
+        print(f"{C_CYAN}{C_BOLD}[MENU IN MONEY PWA]{C_RESET}")
+        print("  1. 🌐 Buka Live Web App (GitHub Pages)")
+        print("  2. 💻 Jalankan Server Lokal (Offline PWA)")
+        print("  3. 🚪 Keluar")
+        print()
+        choice = input(f"{C_BOLD}Pilih opsi [1-3]: {C_RESET}").strip()
+        if choice == "1":
+            open_web()
+        elif choice == "2":
+            serve_local()
+        elif choice in ("3", "q", "exit", "keluar"):
+            print(f"\n{C_CYAN}Terima kasih telah menggunakan In Money! 👋{C_RESET}\n")
+            break
+        else:
+            print(f"{C_YELLOW}Opsi tidak valid.{C_RESET}\n")
+
+def main():
+    args = sys.argv[1:]
+    if not args:
+        interactive_menu()
+        return
+    cmd = args[0].lower()
+    if cmd in ("open", "live"):
+        open_web()
+    elif cmd in ("serve", "start", "run"):
+        serve_local()
+    elif cmd in ("-h", "--help", "help"):
+        print(BANNER)
+        print(f"{C_BOLD}PENGGUNAAN:{C_RESET}")
+        print("  inmoney           Mode interaktif terminal")
+        print("  inmoney open      Buka Live Web App di browser")
+        print("  inmoney serve     Jalankan server offline lokal pada http://localhost:4321")
+        print()
+    else:
+        open_web()
+
+if __name__ == "__main__":
+    main()

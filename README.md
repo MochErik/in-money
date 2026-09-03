@@ -2,7 +2,7 @@
 
 > **Enterprise-Grade Offline-First PWA Financial & Cashflow Overflow Engine**  
 > **UI Aesthetic**: Dribbble Monochromatic Clay Tactile Design System (`#e6eae0` / `#121214` / `#ffffff`)  
-> **Target Devices**: 100% Fit di iPhone (Termasuk iPhone 12 Mini & Dynamic Island), Android, iPad, MacBook, Laptop, & PC Widescreen  
+> **Target Devices**: All Device  
 > **Live App**: [https://mocherik.github.io/in-money/](https://mocherik.github.io/in-money/)  
 > **Author**: Moch. Erik Irriansyah (NIM 04123003 — Universitas Narotama)
 
@@ -89,6 +89,29 @@ Proyek ini dibangun dengan struktur monorepo multi-bahasa terstruktur:
 │
 └── deployments/
     └── docker-compose.yml    # Stack deployment container untuk Mac / Armbian CasaOS
+```
+
+---
+
+## 💻 Instalasi Cepat & Penggunaan Langsung via Terminal (CLI)
+
+Bagi pengguna atau developer yang ingin menginstal dan menjalankan **In Money** langsung dari terminal tanpa harus repot membuka browser atau mesin pencari:
+
+### ⚡ 1. Install Global CLI Otomatis (1 Baris Perintah):
+```bash
+curl -sSL https://raw.githubusercontent.com/MochErik/in-money/main/scripts/install-cli.sh | bash
+```
+
+### ⚡ 2. Perintah CLI yang Tersedia:
+```bash
+# 1. Buka Menu Interaktif Terminal
+inmoney
+
+# 2. Buka Live Web App langsung di Browser
+inmoney open
+
+# 3. Jalankan Server PWA Offline Lokal pada Port 4321
+inmoney serve
 ```
 
 ---
