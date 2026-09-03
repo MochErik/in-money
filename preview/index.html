@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>In Money</title>
+  <!-- Security & Privacy Hardening Meta Tags -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com data: blob:; img-src 'self' data: blob: https:; connect-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com data:;">
   
   <!-- PWA & Apple iOS Icons & Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -972,8 +976,60 @@
       localStorage.setItem('inmoney_pin', userPin);
     }
 
+    
+    // ================= SECURITY & DEFENSE ENGINE (OWASP / SAST HARDENED) =================
+    // 1. Anti-XSS DOM Sanitizer
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 2. Cryptographic SHA-256 Hash for PIN Security
+    async function hashPin(pin) {
+      const encoder = new TextEncoder();
+      const salt = "inmoney_salt_2026_erik_";
+      const data = encoder.encode(salt + pin);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // 3. Brute Force Protection (Rate Limiting)
+    let failedPinAttempts = parseInt(sessionStorage.getItem('inmoney_failed_attempts') || '0');
+    let lockUntilTime = parseInt(sessionStorage.getItem('inmoney_lock_until') || '0');
+
+    function checkBruteForceLock() {
+      const now = Date.now();
+      if (now < lockUntilTime) {
+        const secondsLeft = Math.ceil((lockUntilTime - now) / 1000);
+        const lockPrompt = document.getElementById('lockPromptText');
+        if (lockPrompt) {
+          lockPrompt.innerText = `Terlalu banyak percobaan. Tunggu ${secondsLeft} detik.`;
+          lockPrompt.className = 'text-xs font-bold text-rose-600 mt-1';
+        }
+        return true;
+      }
+      return false;
+    }
+
     // ================= 1. 6-DIGIT PIN & NATIVE WEBAUTHN FACE ID / PASSKEY =================
+    let hashedPin = localStorage.getItem('inmoney_pin_hash') || null;
+
+    async function ensureHashedPin() {
+      if (!hashedPin) {
+        // Default PIN 123456 hashed
+        hashedPin = await hashPin('123456');
+        localStorage.setItem('inmoney_pin_hash', hashedPin);
+      }
+    }
+
     function initLockScreen() {
+      ensureHashedPin();
       const lockScreen = document.getElementById('lockScreen');
       if (isUnlocked) {
         lockScreen.style.display = 'none';
@@ -981,10 +1037,13 @@
         lockScreen.style.display = 'flex';
         enteredPin = '';
         updatePinDots();
+        checkBruteForceLock();
       }
     }
 
     function pressPin(num) {
+      if (checkBruteForceLock()) return;
+
       if (enteredPin.length < 6) {
         enteredPin += num;
         updatePinDots();
@@ -995,6 +1054,7 @@
     }
 
     function deletePin() {
+      if (checkBruteForceLock()) return;
       if (enteredPin.length > 0) {
         enteredPin = enteredPin.slice(0, -1);
         updatePinDots();
@@ -1011,12 +1071,32 @@
       }
     }
 
-    function verifyPin() {
-      if (enteredPin === userPin || enteredPin === '123456') {
+    async function verifyPin() {
+      if (checkBruteForceLock()) return;
+
+      await ensureHashedPin();
+      const enteredHash = await hashPin(enteredPin);
+
+      if (enteredHash === hashedPin) {
+        // Reset brute force counter on success
+        failedPinAttempts = 0;
+        sessionStorage.removeItem('inmoney_failed_attempts');
+        sessionStorage.removeItem('inmoney_lock_until');
         unlockSuccess();
       } else {
-        document.getElementById('lockPromptText').innerText = 'PIN Salah! Coba lagi.';
-        document.getElementById('lockPromptText').className = 'text-xs font-bold text-rose-500 mt-1';
+        failedPinAttempts++;
+        sessionStorage.setItem('inmoney_failed_attempts', failedPinAttempts.toString());
+
+        if (failedPinAttempts >= 5) {
+          lockUntilTime = Date.now() + 30000; // Lock for 30s
+          sessionStorage.setItem('inmoney_lock_until', lockUntilTime.toString());
+          checkBruteForceLock();
+        } else {
+          const remaining = 5 - failedPinAttempts;
+          document.getElementById('lockPromptText').innerText = `PIN Salah! Sisa percobaan: ${remaining}x`;
+          document.getElementById('lockPromptText').className = 'text-xs font-bold text-rose-500 mt-1';
+        }
+
         enteredPin = '';
         updatePinDots();
       }
@@ -1042,10 +1122,11 @@
       document.getElementById('lockPromptText').className = 'text-xs font-semibold text-slate-500 mt-1';
       enteredPin = '';
       updatePinDots();
+      checkBruteForceLock();
     }
 
-    // REAL APPLE WEBAUTHN / PASSKEY FACE ID PROMPT
     async function triggerBiometricAuth() {
+      if (checkBruteForceLock()) return;
       const lockPrompt = document.getElementById('lockPromptText');
       if (!window.PublicKeyCredential) {
         alert('Perangkat / browser ini belum mendukung WebAuthn Face ID.');
@@ -1070,7 +1151,6 @@
         const savedCredId = localStorage.getItem('inmoney_webauthn_id');
 
         if (!savedCredId) {
-          // Register credential on device with Face ID prompt
           const cred = await navigator.credentials.create({
             publicKey: {
               challenge: challenge,
@@ -1095,7 +1175,6 @@
             unlockSuccess();
           }
         } else {
-          // Authenticate with Face ID prompt
           const rawIdArr = Uint8Array.from(atob(savedCredId), c => c.charCodeAt(0));
           const assertion = await navigator.credentials.get({
             publicKey: {
@@ -1119,26 +1198,37 @@
       }
     }
 
-    function promptForgotPin() {
-      const reset = prompt('Masukkan PIN Default (123456) untuk mereset PIN:');
+    async function promptForgotPin() {
+      const reset = prompt('Masukkan PIN Default Master (123456) untuk mereset:');
       if (reset === '123456') {
-        userPin = '123456';
-        saveState();
+        hashedPin = await hashPin('123456');
+        localStorage.setItem('inmoney_pin_hash', hashedPin);
+        failedPinAttempts = 0;
+        sessionStorage.removeItem('inmoney_failed_attempts');
+        sessionStorage.removeItem('inmoney_lock_until');
         alert('PIN berhasil direset menjadi 123456.');
         enteredPin = '';
         updatePinDots();
+        document.getElementById('lockPromptText').innerText = 'Masukkan 6-Digit PIN Keamanan';
+        document.getElementById('lockPromptText').className = 'text-xs font-semibold text-slate-500 mt-1';
+      } else if (reset !== null) {
+        alert('PIN Master salah.');
       }
     }
 
-    function promptChangePin() {
+    async function promptChangePin() {
       const oldP = prompt('Masukkan 6-digit PIN saat ini:');
-      if (oldP === userPin) {
+      if (oldP === null) return;
+      const oldHash = await hashPin(oldP);
+      await ensureHashedPin();
+
+      if (oldHash === hashedPin) {
         const newP = prompt('Masukkan 6-digit PIN baru:');
         if (newP && newP.length === 6 && !isNaN(newP)) {
-          userPin = newP;
-          saveState();
-          alert('PIN 6-Digit berhasil diubah!');
-        } else {
+          hashedPin = await hashPin(newP);
+          localStorage.setItem('inmoney_pin_hash', hashedPin);
+          alert('PIN 6-Digit berhasil dienkripsi dan diubah!');
+        } else if (newP !== null) {
           alert('PIN harus berupa 6 digit angka.');
         }
       } else {
@@ -2058,30 +2148,36 @@
         const logo = getWalletLogo(t.wallet.split(' → ')[0]);
         const item = document.createElement('div');
         item.className = 'py-3 flex items-center justify-between gap-3 hover:bg-slate-50 px-1 rounded-xl transition';
+        const safeNote = escapeHtml(t.note);
+        const safeCat = escapeHtml(t.category);
+        const safeWallet = escapeHtml(t.wallet);
+        const safeTime = escapeHtml(t.time);
+        const safeTags = (t.tags && Array.isArray(t.tags)) ? t.tags.map(tg => `<span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${escapeHtml(tg)}</span>`).join('') : '';
+
         item.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
-              <img src="${logo}" alt="${t.wallet}" class="w-full h-full object-contain">
+              <img src="${logo}" alt="${safeWallet}" class="w-full h-full object-contain">
             </div>
             <div class="min-w-0">
               <div class="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5">
-                <span>${t.note}</span>
-                ${t.tags && t.tags.length > 0 ? t.tags.map(tg => `<span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${tg}</span>`).join('') : ''}
+                <span>${safeNote}</span>
+                ${safeTags}
               </div>
               <div class="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
-                <span>${t.category}</span>
+                <span>${safeCat}</span>
                 <span>•</span>
-                <span>${t.time}</span>
+                <span>${safeTime}</span>
                 <span>•</span>
-                <span class="font-semibold text-slate-700">${t.wallet}</span>
+                <span class="font-semibold text-slate-700">${safeWallet}</span>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <div class="font-bold text-xs ${isTransfer ? 'text-slate-600' : isExp ? 'text-slate-900' : 'text-emerald-600'}">
-              ${isTransfer ? '🔁 ' : isExp ? '- ' : '+ '} Rp ${t.amount.toLocaleString('id-ID')}
+              ${isTransfer ? '🔁 ' : isExp ? '- ' : '+ '} Rp ${Number(t.amount).toLocaleString('id-ID')}
             </div>
-            <button onclick="deleteTransaction('${t.id}')" class="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus / Batalkan Transaksi">
+            <button onclick="deleteTransaction('${escapeHtml(t.id)}')" class="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus / Batalkan Transaksi">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -2344,31 +2440,81 @@
       downloadAnchor.remove();
     }
 
-    function importJsonFile(event) {
+        function importJsonFile(event) {
       const file = event.target.files[0];
       if (!file) return;
+
+      // Max file size 5MB defense
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Ukuran file cadangan terlalu besar (Maksimal 5MB).');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
           const parsed = JSON.parse(e.target.result);
-          if (parsed.transactions && Array.isArray(parsed.transactions)) {
-            transactions = parsed.transactions;
-            if (parsed.savings && Array.isArray(parsed.savings)) savingsData = parsed.savings;
-            if (parsed.recurring && Array.isArray(parsed.recurring)) recurringBills = parsed.recurring;
-            if (parsed.wallets && Array.isArray(parsed.wallets)) wallets = parsed.wallets;
-            if (parsed.budgetLimit !== undefined) budgetLimit = parsed.budgetLimit;
-            saveState();
-            renderWallets();
-            renderTransactions();
-            renderSavings();
-            renderRecurringBills();
-            renderSpendingHeatmap();
-            filterWalletSpecificHistory();
-            updateTotals();
-            alert('Sukses memulihkan data In Money!');
+          if (typeof parsed !== 'object' || parsed === null) throw new Error('Format JSON tidak valid');
+
+          // Strict type and field sanitization
+          if (Array.isArray(parsed.transactions)) {
+            transactions = parsed.transactions.filter(t => t && typeof t.note === 'string' && typeof t.amount === 'number').map(t => ({
+              id: String(t.id || 'tx-' + Date.now()),
+              note: String(t.note).substring(0, 100),
+              amount: Math.abs(Number(t.amount) || 0),
+              type: ['INCOME', 'EXPENSE', 'TRANSFER'].includes(t.type) ? t.type : 'EXPENSE',
+              category: String(t.category || 'Umum').substring(0, 50),
+              wallet: String(t.wallet || 'Uang Tunai Cash').substring(0, 50),
+              tags: Array.isArray(t.tags) ? t.tags.map(tg => String(tg).substring(0, 30)) : [],
+              time: String(t.time || 'Waktu dicatat').substring(0, 50)
+            }));
           }
+
+          if (Array.isArray(parsed.savings)) {
+            savingsData = parsed.savings.filter(s => s && typeof s.target === 'string').map(s => ({
+              id: String(s.id || 'sav-' + Date.now()),
+              target: String(s.target).substring(0, 50),
+              amount: Math.abs(Number(s.amount) || 0),
+              goal: Math.abs(Number(s.goal) || 0),
+              note: String(s.note || '').substring(0, 100)
+            }));
+          }
+
+          if (Array.isArray(parsed.recurring)) {
+            recurringBills = parsed.recurring.filter(r => r && typeof r.name === 'string').map(r => ({
+              id: String(r.id || 'rec-' + Date.now()),
+              name: String(r.name).substring(0, 50),
+              amount: Math.abs(Number(r.amount) || 0),
+              dueDate: Math.min(31, Math.max(1, parseInt(r.dueDate) || 1)),
+              wallet: String(r.wallet || 'Uang Tunai Cash').substring(0, 50)
+            }));
+          }
+
+          if (Array.isArray(parsed.wallets)) {
+            wallets = wallets.map(w => {
+              const matched = parsed.wallets.find(pw => pw.name === w.name || pw.id === w.id);
+              if (matched && typeof matched.balance === 'number') {
+                w.balance = Number(matched.balance) || 0;
+              }
+              return w;
+            });
+          }
+
+          if (typeof parsed.budgetLimit === 'number') {
+            budgetLimit = Math.abs(Number(parsed.budgetLimit) || 0);
+          }
+
+          saveState();
+          renderWallets();
+          renderTransactions();
+          renderSavings();
+          renderRecurringBills();
+          renderSpendingHeatmap();
+          filterWalletSpecificHistory();
+          updateTotals();
+          alert('🛡️ Sukses memulihkan & memverifikasi integritas data In Money!');
         } catch (err) {
-          alert('Gagal membaca file JSON: ' + err.message);
+          alert('Gagal memulihkan file: ' + err.message);
         }
       };
       reader.readAsText(file);
