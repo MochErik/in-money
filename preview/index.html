@@ -1193,39 +1193,30 @@
       if (!file) return;
 
       const statusText = document.getElementById('ocrStatusText');
-      statusText.innerText = 'Scanning...';
+      if (statusText) statusText.innerText = 'Scanning...';
 
       try {
+        if (typeof Tesseract === 'undefined') {
+          alert('Modul OCR scanner sedang dimuat...');
+          return;
+        }
         const worker = await Tesseract.createWorker('ind+eng');
         const ret = await worker.recognize(file);
         await worker.terminate();
 
-        const fullText = ret.data.text;
-        statusText.innerText = 'Sukses!';
-        setTimeout(() => { statusText.innerText = 'Scan Struk'; }, 3000);
+        const fullText = (ret && ret.data && ret.data.text) ? ret.data.text : '';
+        if (statusText) statusText.innerText = 'Sukses!';
+        setTimeout(function() { if (statusText) statusText.innerText = 'Scan Struk'; }, 3000);
 
-        // Extract numbers with regex for Indonesian receipts
-        const matches = fullText.match(/(?:rp|total|tagihan|bayar|netto|grand\s*total)?[.:\s]*([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,8})/gi);
-        if (matches && matches.length > 0) {
-          let maxVal = 0;
-          matches.forEach(m => {
-            const cleanNum = parseFloat(m.replace(/[^0-9]/g, ''));
-            if (cleanNum > maxVal && cleanNum < 100000000) maxVal = cleanNum;
-          });
-          if (maxVal > 0) document.getElementById('formAmount').value = maxVal;
-        }
-
-        // Auto fill note from first readable lines
-        const lines = fullText.split('
-').map(l => l.trim()).filter(l => l.length > 3 && !/^[0-9\s:.-]+$/.test(l));
+        const lines = fullText.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 3; });
         if (lines.length > 0) {
           document.getElementById('formNote').value = lines[0].substring(0, 35);
         }
 
-        alert('Struk berhasil dibaca! Silakan periksa nominal dan simpan transaksi.');
+        alert('Struk berhasil dipindai! Silakan cek dan simpan transaksi.');
       } catch (err) {
-        statusText.innerText = 'Scan Gagal';
-        setTimeout(() => { statusText.innerText = 'Scan Struk'; }, 2500);
+        if (statusText) statusText.innerText = 'Scan Gagal';
+        setTimeout(function() { if (statusText) statusText.innerText = 'Scan Struk'; }, 2500);
         console.error('OCR Error:', err);
       }
     }
