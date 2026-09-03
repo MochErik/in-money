@@ -334,7 +334,7 @@
         </div>
       </div>
 
-            <!-- 2. FITUR 5: ULTRA-COMPACT MONOCHROME SPENDING STRIP (HITAM, ABU, PUTIH) -->
+                  <!-- 2. FITUR 5: ULTRA-COMPACT EXPANDABLE MONOCHROME SPENDING CALENDAR (JAKARTA WIB) -->
       <div class="tactile-white-card p-4 space-y-2.5">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -342,8 +342,8 @@
               <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
             </div>
             <div>
-              <h3 class="font-bold text-slate-900 text-xs sm:text-sm">Aktivitas Belanja 7 Hari Terakhir</h3>
-              <p class="text-[10px] text-slate-400">Ringkasan hari hemat & pengeluaran</p>
+              <h3 id="calendarTitle" class="font-bold text-slate-900 text-xs sm:text-sm">Aktivitas Belanja 7 Hari Terakhir</h3>
+              <p id="calendarSubtitle" class="text-[10px] text-slate-400">Zona Waktu Indonesia (WIB)</p>
             </div>
           </div>
 
@@ -355,9 +355,17 @@
           </div>
         </div>
 
-        <!-- 7-Day Ultra Compact Horizontal Tactile Pills -->
-        <div class="grid grid-cols-7 gap-1.5 pt-1" id="spendingHeatmapGrid"></div>
-        <p class="text-[10px] text-slate-500 text-center font-medium" id="heatmapSelectedDayInfo">Klik tanggal di atas untuk melihat detail pengeluaran.</p>
+        <!-- Dynamic Grid for 7-Day or Full Monthly View -->
+        <div class="grid grid-cols-7 gap-1.5 pt-1 transition-all duration-300" id="spendingHeatmapGrid"></div>
+        
+        <p class="text-[10px] text-slate-600 text-center font-medium" id="heatmapSelectedDayInfo">Klik tanggal di atas untuk melihat detail pengeluaran.</p>
+
+        <!-- Chevron Toggle Button at Bottom Center -->
+        <div class="flex justify-center pt-1 border-t border-slate-100">
+          <button type="button" onclick="toggleCalendarView()" class="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition flex items-center justify-center" id="expandCalendarBtn" title="Buka/Tutup Seluruh Tanggal Bulanan">
+            <i data-lucide="chevron-down" id="expandCalendarIcon" class="w-4 h-4"></i>
+          </button>
+        </div>
       </div>
 
       <!-- 3. FITUR 3: RECURRING BILLS & SUBSCRIPTIONS (TAGIHAN RUTIN BULANAN) -->
@@ -1409,37 +1417,97 @@
       }
     }
 
-    // ================= 7. FITUR 5: ULTRA-COMPACT 7-DAY MONOCHROME STRIP =================
+        // ================= 7. FITUR 5: ULTRA-COMPACT EXPANDABLE MONOCHROME STRIP (JAKARTA WIB) =================
+    let isCalendarExpanded = false;
+
+    function getJakartaNow() {
+      const now = new Date();
+      // Adjust to Asia/Jakarta timezone
+      const jakartaString = now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+      return new Date(jakartaString);
+    }
+
+    function toggleCalendarView() {
+      isCalendarExpanded = !isCalendarExpanded;
+      const titleEl = document.getElementById('calendarTitle');
+      const subEl = document.getElementById('calendarSubtitle');
+      const iconEl = document.getElementById('expandCalendarIcon');
+
+      if (isCalendarExpanded) {
+        if (titleEl) titleEl.innerText = 'Aktivitas Belanja Bulanan';
+        const jakartaDate = getJakartaNow();
+        const monthName = jakartaDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        if (subEl) subEl.innerText = 'Bulan ' + monthName + ' (WIB)';
+        if (iconEl) iconEl.setAttribute('data-lucide', 'chevron-up');
+      } else {
+        if (titleEl) titleEl.innerText = 'Aktivitas Belanja 7 Hari Terakhir';
+        if (subEl) subEl.innerText = 'Zona Waktu Indonesia (WIB)';
+        if (iconEl) iconEl.setAttribute('data-lucide', 'chevron-down');
+      }
+
+      renderSpendingHeatmap();
+      lucide.createIcons();
+    }
+
+    function getExpenseForDate(targetDate) {
+      const targetDay = targetDate.getDate();
+      const targetMonth = targetDate.getMonth();
+      const targetYear = targetDate.getFullYear();
+
+      const jakartaToday = getJakartaNow();
+      const isToday = (targetDay === jakartaToday.getDate() && targetMonth === jakartaToday.getMonth() && targetYear === jakartaToday.getFullYear());
+
+      let total = 0;
+      transactions.forEach(t => {
+        if (t.type === 'EXPENSE') {
+          if (isToday && t.time && t.time.includes('Hari ini')) {
+            total += t.amount;
+          } else if (t.isoDate) {
+            const tDate = new Date(t.isoDate);
+            if (tDate.getDate() === targetDay && tDate.getMonth() === targetMonth && tDate.getFullYear() === targetYear) {
+              total += t.amount;
+            }
+          }
+        }
+      });
+      return total;
+    }
+
     function renderSpendingHeatmap() {
       const grid = document.getElementById('spendingHeatmapGrid');
       if (!grid) return;
       grid.innerHTML = '';
 
       const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-      const today = new Date();
+      const jakartaToday = getJakartaNow();
       const days = [];
 
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(today.getDate() - i);
-        days.push(d);
+      if (!isCalendarExpanded) {
+        // 7 Hari Terakhir
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(jakartaToday);
+          d.setDate(jakartaToday.getDate() - i);
+          days.push(d);
+        }
+      } else {
+        // Full Bulan Berjalan (1 sampai akhir bulan)
+        const year = jakartaToday.getFullYear();
+        const month = jakartaToday.getMonth();
+        const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let dayNum = 1; dayNum <= totalDaysInMonth; dayNum++) {
+          const d = new Date(year, month, dayNum);
+          days.push(d);
+        }
       }
 
-      // Calculate total expense for today
-      let todayExpense = 0;
-      transactions.forEach(t => {
-        if (t.type === 'EXPENSE' && t.time && t.time.includes('Hari ini')) {
-          todayExpense += t.amount;
-        }
-      });
-
-      days.forEach((day, index) => {
-        const isToday = index === 6;
+      days.forEach((day) => {
+        const isToday = (day.getDate() === jakartaToday.getDate() && day.getMonth() === jakartaToday.getMonth() && day.getFullYear() === jakartaToday.getFullYear());
         const dayName = dayNames[day.getDay()];
         const dayNum = day.getDate();
-        const expense = isToday ? todayExpense : 0;
+        const expense = getExpenseForDate(day);
 
-        // Monochrome Style: Black, Gray, White ONLY
+        // Strict Monochrome: Black, Gray, White
         let styleClass = 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100';
         let dotClass = 'bg-white border border-slate-300';
         
@@ -1460,11 +1528,13 @@
           <div class="w-1.5 h-1.5 rounded-full ${dotClass} mt-0.5"></div>
         `;
         pill.onclick = () => {
-          document.getElementById('heatmapSelectedDayInfo').innerText = 
-            `Tanggal ${dayNum} (${dayName}): Pengeluaran Rp ${expense.toLocaleString('id-ID')}`;
+          const formattedDate = day.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+          document.getElementById('heatmapSelectedDayInfo').innerHTML = 
+            `<b>${formattedDate} (WIB)</b>: Total Pengeluaran <span class="font-bold text-slate-900">Rp ${expense.toLocaleString('id-ID')}</span>`;
         };
         grid.appendChild(pill);
       });
+      lucide.createIcons();
     }
 
     // ================= 8. FITUR 7: CUSTOM KATEGORI & MULTI-TAGS =================
