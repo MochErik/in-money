@@ -16,10 +16,10 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   
-  <!-- Fonts -->
+    <!-- Premium Soft Modern Fonts: Outfit & Manrope -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +33,8 @@
 
   <style>
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      letter-spacing: -0.015em;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       background-color: #e6eae0;
@@ -549,7 +550,7 @@
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nominal (Rupiah)</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
-            <input type="number" id="formAmount" required placeholder="0" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            <input type="number" id="formAmount" required placeholder="0" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-semibold tracking-tight text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
         </div>
 
@@ -623,7 +624,7 @@
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Saldo Rekening Baru (Rupiah)</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
-            <input type="number" id="editWalletAmount" required placeholder="0" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            <input type="number" id="editWalletAmount" required placeholder="0" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-semibold tracking-tight text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
           <p class="text-[10px] text-slate-500 mt-1">Selisih saldo akan otomatis dicatat dalam riwayat mutasi.</p>
         </div>
@@ -650,7 +651,7 @@
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Batas Maksimal Pengeluaran (Rupiah)</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
-            <input type="number" id="budgetLimitInput" required placeholder="5000000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            <input type="number" id="budgetLimitInput" required placeholder="5000000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-semibold tracking-tight text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
         </div>
 
@@ -681,7 +682,7 @@
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Target Nominal (Opsional)</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
-            <input type="number" id="targetGoalInput" placeholder="10000000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            <input type="number" id="targetGoalInput" placeholder="10000000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-semibold tracking-tight text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
         </div>
 
@@ -712,7 +713,7 @@
           <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nominal Setoran</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
-            <input type="number" id="savingsAmountInput" required placeholder="500000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            <input type="number" id="savingsAmountInput" required placeholder="500000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-semibold tracking-tight text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
         </div>
 
@@ -945,7 +946,7 @@
             </div>
             <div class="font-bold text-xs text-slate-900">${w.name}</div>
           </div>
-          <div class="font-mono text-xs font-bold text-slate-600">Rp ${w.balance.toLocaleString('id-ID')}</div>
+          <div class="font-semibold tracking-tight text-xs font-bold text-slate-600">Rp ${w.balance.toLocaleString('id-ID')}</div>
         `;
         container.appendChild(item);
       });
@@ -1060,7 +1061,7 @@
             </div>
           </div>
           <div class="text-right">
-            <div class="font-mono font-bold text-xs text-slate-900">Rp ${w.balance.toLocaleString('id-ID')}</div>
+            <div class="font-semibold tracking-tight font-bold text-xs text-slate-900">Rp ${w.balance.toLocaleString('id-ID')}</div>
             <span class="text-[9px] text-slate-400 font-semibold flex items-center justify-end gap-0.5">Edit <i data-lucide="edit-2" class="w-2.5 h-2.5"></i></span>
           </div>
         `;
@@ -1367,7 +1368,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            <div class="font-mono font-bold text-xs ${isExp ? 'text-slate-900' : 'text-emerald-600'}">
+            <div class="font-semibold tracking-tight font-bold text-xs ${isExp ? 'text-slate-900' : 'text-emerald-600'}">
               ${isExp ? '-' : '+'} Rp ${t.amount.toLocaleString('id-ID')}
             </div>
             <button onclick="deleteTransaction('${t.id}')" class="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus / Batalkan Transaksi">
@@ -1421,7 +1422,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            <div class="font-mono font-bold text-xs ${isExp ? 'text-slate-900' : 'text-emerald-600'}">
+            <div class="font-semibold tracking-tight font-bold text-xs ${isExp ? 'text-slate-900' : 'text-emerald-600'}">
               ${isExp ? '-' : '+'} Rp ${t.amount.toLocaleString('id-ID')}
             </div>
             <button onclick="deleteTransaction('${t.id}')" class="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Transaksi">
@@ -1505,12 +1506,12 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 9, family: 'Plus Jakarta Sans' } } },
+            x: { grid: { display: false }, ticks: { font: { size: 9, family: 'Outfit' } } },
             y: {
               grid: { color: '#f1f5f9' },
               ticks: {
                 callback: function(val) { return 'Rp ' + val.toLocaleString('id-ID'); },
-                font: { size: 9, family: 'Plus Jakarta Sans' }
+                font: { size: 9, family: 'Outfit' }
               }
             }
           }
