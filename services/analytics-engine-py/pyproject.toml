@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "zenith-analytics-py"
+version = "2.0.0"
+description = "Machine Learning & Statistical Cashflow Forecasting for Zenith Financial Flow"
+authors = ["Moch. Erik Irriansyah <mocherikirriansyah@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.0"
+uvicorn = "^0.34.0"
+numpy = "^2.2.0"
+pandas = "^2.2.3"
+pydantic = "^2.10.4"

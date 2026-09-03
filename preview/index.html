@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>In Money</title>
+  
+  <link rel="icon" type="image/jpeg" href="./assets/app_icon.jpg">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF & autoTable CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #e6eae0;
+      color: #18181b;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .hero-matte-gradient {
+      background: linear-gradient(135deg, #121214 0%, #1a1a1e 50%, #242429 100%);
+      box-shadow: 0 16px 36px -8px rgba(18, 18, 21, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tabungan-ash-card {
+      background: linear-gradient(145deg, #e4e7e0 0%, #d8dcd3 100%);
+      border: 1px solid rgba(160, 170, 155, 0.4);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.04);
+      border-radius: 24px;
+    }
+
+    .tactile-white-card {
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.03);
+      border-radius: 24px;
+    }
+
+    .active-pill {
+      background: #121214;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .logo-container-white {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* iOS Safe Areas */
+    .safe-top {
+      padding-top: max(env(safe-area-inset-top), 12px);
+    }
+    .safe-bottom {
+      padding-bottom: max(env(safe-area-inset-bottom), 16px);
+    }
+  </style>
+</head>
+<body class="select-none flex flex-col min-h-screen">
+
+  <!-- ================= TOP APP HEADER (CLEAN & MINIMALIST) ================= -->
+  <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-4 md:px-8 py-3 safe-top">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Brand ONLY: Luxury Icon + In Money Title (No Badges, No Subtext) -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-black border border-white/20 p-0.5 shadow-md flex items-center justify-center overflow-hidden flex-shrink-0">
+          <img src="./assets/app_icon.jpg" alt="In Money Icon" class="w-full h-full object-cover rounded-xl">
+        </div>
+        <h1 class="font-black text-lg tracking-tight text-slate-900 font-sans">In Money</h1>
+      </div>
+
+      <!-- Desktop Period Filter Pills -->
+      <div class="hidden md:flex items-center bg-slate-200/90 p-1 rounded-full text-xs font-semibold gap-1 border border-slate-300/40">
+        <button onclick="setPeriod('daily')" id="pill-daily" class="px-3.5 py-1 rounded-full transition-all text-slate-600 hover:text-slate-900">Harian</button>
+        <button onclick="setPeriod('weekly')" id="pill-weekly" class="px-3.5 py-1 rounded-full transition-all active-pill">Mingguan</button>
+        <button onclick="setPeriod('monthly')" id="pill-monthly" class="px-3.5 py-1 rounded-full transition-all text-slate-600 hover:text-slate-900">Bulanan</button>
+        <button onclick="setPeriod('yearly')" id="pill-yearly" class="px-3.5 py-1 rounded-full transition-all text-slate-600 hover:text-slate-900">Tahunan</button>
+      </div>
+
+      <!-- Right Quick Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button onclick="toggleModal('modal-add-tx')" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2 rounded-full flex items-center gap-1.5 shadow-sm active:scale-95 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Catat Transaksi</span>
+        </button>
+
+        <button onclick="toggleModal('modal-pdf')" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition" title="Laporan PDF">
+          <i data-lucide="file-down" class="w-4 h-4 text-rose-500"></i>
+        </button>
+
+        <button onclick="toggleModal('modal-backup')" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="Backup JSON">
+          <i data-lucide="database" class="w-4 h-4"></i>
+        </button>
+
+        <button onclick="toggleModal('modal-lock')" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="Kunci Aplikasi">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Mobile Period Switcher (Clean full-width segmented pills) -->
+  <div class="md:hidden px-4 pt-3.5 max-w-6xl mx-auto w-full">
+    <div class="grid grid-cols-4 bg-slate-200/80 p-1 rounded-2xl text-xs font-semibold gap-1 text-center border border-slate-300/40">
+      <button onclick="setPeriod('daily')" id="mob-pill-daily" class="py-1.5 rounded-xl text-slate-600 transition">Harian</button>
+      <button onclick="setPeriod('weekly')" id="mob-pill-weekly" class="py-1.5 rounded-xl active-pill transition">Mingguan</button>
+      <button onclick="setPeriod('monthly')" id="mob-pill-monthly" class="py-1.5 rounded-xl text-slate-600 transition">Bulanan</button>
+      <button onclick="setPeriod('yearly')" id="mob-pill-yearly" class="py-1.5 rounded-xl text-slate-600 transition">Tahunan</button>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT FLUID CONTAINER ================= -->
+  <main class="max-w-6xl w-full mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6 flex-1">
+    
+    <!-- 1. HERO CARD: TOTAL SALDO BERSIH SELURUH DOMPET (MATTE CHARCOAL) -->
+    <div class="hero-matte-gradient p-5 md:p-7 text-white rounded-3xl relative overflow-hidden">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 relative z-10">
+        
+        <!-- Balance -->
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Saldo Bersih</span>
+            <button onclick="togglePrivacyMode()" class="text-slate-400 hover:text-white transition">
+              <i data-lucide="eye" id="privacyIcon" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <div class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight font-sans" id="displayBalance">
+            Rp 145.780.000
+          </div>
+          <div class="flex items-center gap-2 mt-2 text-xs text-slate-300">
+            <span class="inline-flex items-center gap-1 text-emerald-400 font-bold bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+              <i data-lucide="trending-up" class="w-3 h-3"></i> +14.2%
+            </span>
+          </div>
+        </div>
+
+        <!-- Period Cashflow Overflow Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/[0.04] border border-white/10 p-3.5 rounded-2xl backdrop-blur-md">
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-0.5 uppercase" id="overflowInLabel">PEMASUKAN</div>
+            <div class="text-sm sm:text-base font-bold text-emerald-400" id="displayIncome">
+              Rp 12.350.000
+            </div>
+          </div>
+
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 mb-0.5 uppercase" id="overflowOutLabel">PENGELUARAN</div>
+            <div class="text-sm sm:text-base font-bold text-rose-400" id="displayExpense">
+              Rp 6.890.000
+            </div>
+          </div>
+
+          <div class="col-span-2 sm:col-span-1 pt-2 sm:pt-0 border-t sm:border-t-0 sm:border-l border-white/10 sm:pl-3">
+            <div class="text-[10px] font-bold text-slate-400 mb-0.5">OVERFLOW</div>
+            <div class="text-sm sm:text-base font-bold text-emerald-300" id="displaySurplus">
+              +Rp 5.460.000
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. KOTAK TABUNGAN & CELENGAN: MONOKROM ABU-ABU TACTILE -->
+    <div class="tabungan-ash-card p-5 md:p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+            <i data-lucide="piggy-bank" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm md:text-base">Tabungan & Celengan</h3>
+            <p class="text-[11px] text-slate-600">Alokasi simpanan fleksibel sesuai kebutuhan Anda</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button onclick="toggleModal('modal-add-savings-target')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center gap-1 shadow-sm transition">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Tambah</span>
+          </button>
+          <button onclick="toggleModal('modal-setor-savings')" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1 shadow-sm transition">
+            <i data-lucide="arrow-down-to-dot" class="w-3.5 h-3.5"></i>
+            <span>Setor</span>
+          </button>
+          <button onclick="toggleModal('modal-savings-pdf')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold flex items-center gap-1 shadow-sm transition">
+            <i data-lucide="file-down" class="w-3.5 h-3.5 text-slate-700"></i>
+            <span>PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Savings Vaults Dynamic Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="savingsContainer"></div>
+    </div>
+
+    <!-- 3. GRID SECTION: CASHFLOW CHART + BUDGET RING + REAL BANK LOGOS -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+      
+      <!-- LEFT (7 COLS): Cashflow Analysis Chart -->
+      <div class="lg:col-span-7 tactile-white-card p-5 md:p-6 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm md:text-base">Analisis Arus Kas</h3>
+            <p class="text-[11px] text-slate-500">Pemasukan vs Pengeluaran</p>
+          </div>
+          <div class="flex items-center gap-2 text-[11px]">
+            <span class="inline-flex items-center gap-1 font-semibold text-slate-800">
+              <span class="w-2 h-2 rounded-full bg-slate-900"></span> Masuk
+            </span>
+            <span class="inline-flex items-center gap-1 font-semibold text-slate-500">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span> Keluar
+            </span>
+          </div>
+        </div>
+
+        <!-- Canvas Chart -->
+        <div class="w-full h-[180px] md:h-[220px] relative">
+          <canvas id="cashflowChart"></canvas>
+        </div>
+      </div>
+
+      <!-- RIGHT (5 COLS): Budget Ring & Dompet/Rekening -->
+      <div class="lg:col-span-5 space-y-4 md:space-y-6">
+        
+        <!-- Budget Health -->
+        <div class="tactile-white-card p-5">
+          <div class="flex items-center gap-3.5">
+            <div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+              <svg class="w-16 h-16 transform -rotate-90">
+                <circle cx="32" cy="32" r="26" stroke="#e2e8f0" stroke-width="6" fill="transparent"/>
+                <circle cx="32" cy="32" r="26" stroke="#18181b" stroke-width="6" fill="transparent" stroke-dasharray="163" stroke-dashoffset="26" stroke-linecap="round"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-xs font-black text-slate-900">84%</span>
+                <span class="text-[8px] text-slate-500 font-bold uppercase">Safe</span>
+              </div>
+            </div>
+
+            <div class="flex-1 text-xs space-y-1">
+              <div class="flex justify-between text-slate-600">
+                <span>Anggaran:</span>
+                <span class="font-bold text-slate-900">Rp 6.89M / Rp 10M</span>
+              </div>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-slate-900 h-full rounded-full" style="width: 68.9%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Sisa anggaran aman untuk 18 hari ke depan.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dompet & Rekening -->
+        <div class="tactile-white-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-slate-900 text-sm">Dompet & Rekening</h3>
+            <span class="text-[11px] font-bold text-slate-400">6 Akun Aktif</span>
+          </div>
+
+          <div class="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+            
+            <!-- 1. Uang Tunai Cash -->
+            <div class="flex items-center justify-between p-2 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl logo-container-white p-1 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                  <img src="./assets/logos/cash.jpg" alt="Cash" class="w-full h-full object-contain">
+                </div>
+                <div class="font-bold text-xs text-slate-900">Uang Tunai Cash</div>
+              </div>
+              <div class="font-mono font-bold text-xs text-slate-900">Rp 450.000</div>
+            </div>
+
+            <!-- 2. Bank Mandiri -->
+            <div class="flex items-center justify-between p-2 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                  <img src="./assets/logos/mandiri.png" alt="Bank Mandiri" class="w-full h-full object-contain">
+                </div>
+                <div class="font-bold text-xs text-slate-900">Bank Mandiri</div>
+              </div>
+              <div class="font-mono font-bold text-xs text-slate-900">Rp 82.500.000</div>
+            </div>
+
+            <!-- 3. Bank BRI -->
+            <div class="flex items-center justify-between p-2 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl logo-container-white p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                  <img src="./assets/logos/bri.png" alt="Bank BRI" class="w-full h-full object-contain">
+                </div>
+                <div class="font-bold text-xs text-slate-900">Bank BRI</div>
+              </div>
+              <div class="font-mono font-bold text-xs text-slate-900">Rp 35.800.000</div>
+            </div>
+
+            <!-- 4. Bank BTN -->
+            <div class="flex items-center justify-between p-2 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                  <img src="./assets/logos/btn.png" alt="Bank BTN" class="w-full h-full object-contain">
+                </div>
+                <div class="font-bold text-xs text-slate-900">Bank BTN</div>
+              </div>
+              <div class="font-mono font-bold text-xs text-slate-900">Rp 15.000.000</div>
+            </div>
+
+            <!-- 5. SeaBank -->
+            <div class="flex items-center justify-between p-2 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                  <img src="./assets/logos/seabank.jpg" alt="SeaBank" class="w-full h-full object-contain">
+                </div>
+                <div class="font-bold text-xs text-slate-900">SeaBank</div>
+              </div>
+              <div class="font-mono font-bold text-xs text-slate-900">Rp 8.750.000</div>
+            </div>
+
+            <!-- 6. ShopeePay -->
+            <div class="flex items-center justify-between p-2 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl logo-container-white p-0.5 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                  <img src="./assets/logos/shopeepay.png" alt="ShopeePay" class="w-full h-full object-contain">
+                </div>
+                <div class="font-bold text-xs text-slate-900">ShopeePay</div>
+              </div>
+              <div class="font-mono font-bold text-xs text-slate-900">Rp 3.280.000</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 4. FEED TRANSAKSI HARIAN -->
+    <div class="tactile-white-card p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm md:text-base">Catatan Transaksi</h3>
+          <p class="text-[11px] text-slate-500">Riwayat pengeluaran dan pemasukan</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1 sm:flex-initial">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchTxInput" onkeyup="filterTransactions()" placeholder="Cari transaksi..." class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <button onclick="quickAdd('Makan Siang Nasi Goreng', 12000, 'EXPENSE', 'Makanan & Minuman', 'Uang Tunai Cash')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 flex-shrink-0 transition">
+            <i data-lucide="utensils" class="w-3.5 h-3.5 text-amber-600"></i> +Rp 12k Nasi Goreng
+          </button>
+        </div>
+      </div>
+
+      <div class="divide-y divide-slate-100" id="transactionListContainer"></div>
+    </div>
+
+  </main>
+
+  <!-- Mobile Bottom Tactile Dock (Fixed for iPhone / Android) -->
+  <div class="md:hidden bg-white/95 backdrop-blur-lg border-t border-slate-200 px-6 py-2 flex items-center justify-between sticky bottom-0 z-40 safe-bottom shadow-lg">
+    <button class="flex flex-col items-center gap-0.5 text-slate-900 font-bold text-[10px]">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+      <span>Beranda</span>
+    </button>
+    <button onclick="toggleModal('modal-add-tx')" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 text-[10px]">
+      <i data-lucide="plus-circle" class="w-5 h-5"></i>
+      <span>Catat</span>
+    </button>
+    <button onclick="toggleModal('modal-setor-savings')" class="flex flex-col items-center gap-0.5 text-slate-700 font-bold text-[10px]">
+      <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+      <span>Tabungan</span>
+    </button>
+    <button onclick="toggleModal('modal-pdf')" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 text-[10px]">
+      <i data-lucide="file-text" class="w-5 h-5"></i>
+      <span>Laporan</span>
+    </button>
+    <button onclick="toggleModal('modal-backup')" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-slate-900 text-[10px]">
+      <i data-lucide="database" class="w-5 h-5"></i>
+      <span>Backup</span>
+    </button>
+  </div>
+
+  <!-- MODAL: ADD TX -->
+  <div id="modal-add-tx" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-100 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Catat Transaksi Baru</h3>
+        <button onclick="toggleModal('modal-add-tx')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl gap-1 text-xs font-bold text-center">
+        <button type="button" onclick="setTxFormType('EXPENSE')" id="form-type-expense" class="py-1.5 rounded-lg bg-slate-900 text-white shadow">💸 Pengeluaran</button>
+        <button type="button" onclick="setTxFormType('INCOME')" id="form-type-income" class="py-1.5 rounded-lg text-slate-600">💰 Pemasukan</button>
+      </div>
+
+      <form id="addTxForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nominal (Rupiah)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="formAmount" required placeholder="12000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Deskripsi / Catatan</label>
+          <input type="text" id="formNote" required placeholder="Makan Siang Nasi Goreng" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600 mb-1">Kategori</label>
+            <select id="formCategory" class="w-full px-2 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+              <option value="Makanan & Minuman">🍱 Makanan</option>
+              <option value="Transportasi">🛵 Transport</option>
+              <option value="Belanja Harian">🛒 Belanja</option>
+              <option value="Tagihan & Utilitas">⚡ Tagihan</option>
+              <option value="Gaji & Karir">💼 Gaji</option>
+              <option value="Investasi & Tabungan">📈 Tabungan</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600 mb-1">Dompet/Bank</label>
+            <select id="formWallet" class="w-full px-2 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+              <option value="Uang Tunai Cash">💵 Cash</option>
+              <option value="Bank Mandiri">🏦 Mandiri</option>
+              <option value="Bank BRI">🏦 BRI</option>
+              <option value="Bank BTN">🏦 BTN</option>
+              <option value="SeaBank">📱 SeaBank</option>
+              <option value="ShopeePay">🛍️ ShopeePay</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Simpan Transaksi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD SAVINGS TARGET -->
+  <div id="modal-add-savings-target" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-200 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Tambah Pos Tabungan</h3>
+        <button onclick="toggleModal('modal-add-savings-target')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="createTargetForm" onsubmit="handleCreateTarget(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Tabungan</label>
+          <input type="text" id="targetNameInput" required placeholder="Tabungan Pribadi" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Target Nominal (Opsional)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="targetGoalInput" placeholder="10000000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Simpan Tabungan
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SETOR SAVINGS -->
+  <div id="modal-setor-savings" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-200 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Setor ke Tabungan</h3>
+        <button onclick="toggleModal('modal-setor-savings')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="addSavingsForm" onsubmit="handleSavingsSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pilih Tabungan</label>
+          <select id="savingsTargetSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"></select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nominal Setoran</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-sm text-slate-400">Rp</span>
+            <input type="number" id="savingsAmountInput" required placeholder="500000" class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Sumber Rekening</label>
+          <select id="savingsSourceWallet" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900">
+            <option value="Bank Mandiri">🏦 Bank Mandiri</option>
+            <option value="Bank BRI">🏦 Bank BRI</option>
+            <option value="Bank BTN">🏦 Bank BTN</option>
+            <option value="SeaBank">📱 SeaBank</option>
+            <option value="ShopeePay">🛍️ ShopeePay</option>
+            <option value="Uang Tunai Cash">💵 Uang Tunai Cash</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98">
+          Konfirmasi Setoran
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PDF TABUNGAN -->
+  <div id="modal-savings-pdf" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-200 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Laporan Mutasi Tabungan</h3>
+        <button onclick="toggleModal('modal-savings-pdf')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-600">
+          <span>Total Terkumpul:</span>
+          <span class="font-bold text-slate-900" id="totalSavingsDisplayModal">Rp 39.500.000</span>
+        </div>
+      </div>
+
+      <button onclick="downloadSavingsPDF()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow transition active:scale-98">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Unduh File PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: PDF GENERAL REPORT -->
+  <div id="modal-pdf" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-100 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Laporan Keuangan PDF</h3>
+        <button onclick="toggleModal('modal-pdf')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-600">
+          <span>Status Cashflow:</span>
+          <span class="font-bold text-emerald-600">Surplus +Rp 5.460.000</span>
+        </div>
+      </div>
+
+      <button onclick="downloadRealPDF()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow transition active:scale-98">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Unduh File PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: BACKUP JSON -->
+  <div id="modal-backup" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-sm shadow-2xl border border-slate-100 text-slate-900 space-y-3.5">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-sm text-slate-900">Cadangan Data JSON</h3>
+        <button onclick="toggleModal('modal-backup')" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <button onclick="exportJsonFile()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          Unduh Cadangan JSON
+        </button>
+        <div class="pt-2">
+          <label class="block text-slate-600 mb-1">Pulihkan dari file:</label>
+          <input type="file" id="jsonFileInput" accept=".json" onchange="importJsonFile(event)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LOCK -->
+  <div id="modal-lock" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl border border-slate-100 text-slate-900 text-center space-y-3">
+      <div class="w-12 h-12 rounded-full bg-slate-900 text-emerald-400 mx-auto flex items-center justify-center shadow-md">
+        <i data-lucide="fingerprint" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-base text-slate-900">In Money Terkunci</h3>
+        <p class="text-[11px] text-slate-500">Masukkan 4-digit PIN lokal</p>
+      </div>
+      <button onclick="unlockApp()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition active:scale-98 flex items-center justify-center gap-1.5">
+        <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
+        <span>Buka Kunci</span>
+      </button>
+      <button onclick="toggleModal('modal-lock')" class="text-xs text-slate-400 font-medium">Tutup</button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    let transactions = [
+      { id: 'tx-1', note: 'Makan Siang Nasi Goreng Spesial', amount: 12000, type: 'EXPENSE', category: 'Makanan & Minuman', wallet: 'Uang Tunai Cash', time: 'Hari ini, 14:15' },
+      { id: 'tx-2', note: 'Gaji Masuk Project & Magang', amount: 5000000, type: 'INCOME', category: 'Gaji & Karir', wallet: 'Bank Mandiri', time: 'Hari ini, 08:30' },
+      { id: 'tx-3', note: 'Kopi Susu Espresso Double', amount: 18000, type: 'EXPENSE', category: 'Makanan & Minuman', wallet: 'ShopeePay', time: 'Kemarin, 16:40' },
+      { id: 'tx-4', note: 'Isi Bensin Motor Matic', amount: 35000, type: 'EXPENSE', category: 'Transportasi', wallet: 'Uang Tunai Cash', time: 'Kemarin, 09:10' },
+      { id: 'tx-5', note: 'Belanja Bulanan Supermarket', amount: 450000, type: 'EXPENSE', category: 'Belanja Harian', wallet: 'Bank BRI', time: '2 hari lalu' },
+      { id: 'tx-6', note: 'Tagihan Indihome & Cloud Server', amount: 375000, type: 'EXPENSE', category: 'Tagihan & Utilitas', wallet: 'Bank Mandiri', time: '3 hari lalu' },
+      { id: 'tx-7', note: 'Bunga Harian Deposito SeaBank', amount: 7350000, type: 'INCOME', category: 'Investasi & Tabungan', wallet: 'SeaBank', time: '4 hari lalu' }
+    ];
+
+    let savingsData = [
+      { id: 'sav-1', target: 'Tabungan Utama', amount: 25000000, goal: 50000000, note: 'Tabungan fleksibel' },
+      { id: 'sav-2', target: 'Celengan Pribadi', amount: 14500000, goal: 0, note: 'Tanpa batas target' }
+    ];
+
+    let currentPeriod = 'weekly';
+    let currentFormType = 'EXPENSE';
+    let isPrivacyMode = false;
+    let chartInstance = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderTransactions();
+      renderSavings();
+      initChart();
+    });
+
+    function setPeriod(period) {
+      currentPeriod = period;
+      ['daily', 'weekly', 'monthly', 'yearly'].forEach(p => {
+        const pill = document.getElementById('pill-' + p);
+        const mobPill = document.getElementById('mob-pill-' + p);
+        if (pill) pill.className = p === period ? 'px-3.5 py-1 rounded-full transition-all active-pill' : 'px-3.5 py-1 rounded-full transition-all text-slate-600 hover:text-slate-900';
+        if (mobPill) mobPill.className = p === period ? 'py-1.5 rounded-xl active-pill transition' : 'py-1.5 rounded-xl text-slate-600 transition';
+      });
+
+      const inLabel = document.getElementById('overflowInLabel');
+      const outLabel = document.getElementById('overflowOutLabel');
+      if (period === 'daily') { inLabel.innerText = 'PEMASUKAN HARIAN'; outLabel.innerText = 'PENGELUARAN HARIAN'; }
+      else if (period === 'weekly') { inLabel.innerText = 'PEMASUKAN MINGGUAN'; outLabel.innerText = 'PENGELUARAN MINGGUAN'; }
+      else if (period === 'monthly') { inLabel.innerText = 'PEMASUKAN BULANAN'; outLabel.innerText = 'PENGELUARAN BULANAN'; }
+      else if (period === 'yearly') { inLabel.innerText = 'PEMASUKAN TAHUNAN'; outLabel.innerText = 'PENGELUARAN TAHUNAN'; }
+
+      updateTotals();
+    }
+
+    function toggleModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.toggle('hidden');
+        lucide.createIcons();
+      }
+    }
+
+    function togglePrivacyMode() {
+      isPrivacyMode = !isPrivacyMode;
+      const balanceEl = document.getElementById('displayBalance');
+      balanceEl.innerText = isPrivacyMode ? 'Rp ••••••••••' : 'Rp 145.780.000';
+    }
+
+    function setTxFormType(type) {
+      currentFormType = type;
+      document.getElementById('form-type-expense').className = type === 'EXPENSE' ? 'py-1.5 rounded-lg bg-slate-900 text-white shadow' : 'py-1.5 rounded-lg text-slate-600';
+      document.getElementById('form-type-income').className = type === 'INCOME' ? 'py-1.5 rounded-lg bg-slate-900 text-white shadow' : 'py-1.5 rounded-lg text-slate-600';
+    }
+
+    function quickAdd(note, amount, type, category, wallet) {
+      const newTx = {
+        id: 'tx-' + Date.now(),
+        note, amount, type, category, wallet,
+        time: 'Baru saja'
+      };
+      transactions.unshift(newTx);
+      renderTransactions();
+      updateTotals();
+      alert('Berhasil mencatat: ' + note + ' (Rp ' + amount.toLocaleString('id-ID') + ')');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('formAmount').value);
+      const note = document.getElementById('formNote').value;
+      const category = document.getElementById('formCategory').value;
+      const wallet = document.getElementById('formWallet').value;
+
+      transactions.unshift({
+        id: 'tx-' + Date.now(),
+        note, amount, type: currentFormType, category, wallet,
+        time: 'Hari ini, ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      });
+
+      renderTransactions();
+      updateTotals();
+      toggleModal('modal-add-tx');
+      document.getElementById('addTxForm').reset();
+    }
+
+    function renderSavings() {
+      const container = document.getElementById('savingsContainer');
+      const select = document.getElementById('savingsTargetSelect');
+      container.innerHTML = '';
+      select.innerHTML = '';
+
+      let totalSavings = 0;
+      savingsData.forEach(s => {
+        totalSavings += s.amount;
+        const hasGoal = s.goal > 0;
+        const pct = hasGoal ? Math.min(100, (s.amount / s.goal) * 100).toFixed(1) : null;
+
+        const card = document.createElement('div');
+        card.className = 'p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2.5';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-slate-900">🪙 ${s.target}</span>
+            ${hasGoal ? `<span class="text-[10px] font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">${pct}%</span>` : `<span class="text-[10px] text-slate-400 font-semibold">Fleksibel</span>`}
+          </div>
+          <div>
+            <div class="flex justify-between text-[11px] text-slate-600 mb-1">
+              <span>Terkumpul: <b>Rp ${s.amount.toLocaleString('id-ID')}</b></span>
+              ${hasGoal ? `<span class="text-slate-400">Target: Rp ${(s.goal/1000000).toFixed(0)}M</span>` : ''}
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-slate-900 h-full rounded-full" style="width: ${pct || 100}%"></div>
+            </div>
+          </div>
+          <div class="text-[10px] text-slate-400 flex justify-between pt-1 border-t border-slate-100">
+            <span>${s.note || 'Tabungan aktif'}</span>
+            <button onclick="promptSetorSavings('${s.id}')" class="text-slate-900 font-bold hover:underline">+ Setor Dana</button>
+          </div>
+        `;
+        container.appendChild(card);
+
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.text = s.target + ' (Rp ' + s.amount.toLocaleString('id-ID') + ')';
+        select.appendChild(opt);
+      });
+
+      const modalTotal = document.getElementById('totalSavingsDisplayModal');
+      if (modalTotal) modalTotal.innerText = 'Rp ' + totalSavings.toLocaleString('id-ID');
+    }
+
+    function handleCreateTarget(e) {
+      e.preventDefault();
+      const name = document.getElementById('targetNameInput').value;
+      const goal = parseFloat(document.getElementById('targetGoalInput').value) || 0;
+
+      savingsData.push({
+        id: 'sav-' + Date.now(),
+        target: name,
+        amount: 0,
+        goal: goal,
+        note: goal > 0 ? 'Target: Rp ' + goal.toLocaleString('id-ID') : 'Tabungan Fleksibel'
+      });
+
+      renderSavings();
+      toggleModal('modal-add-savings-target');
+      document.getElementById('createTargetForm').reset();
+      alert('Pos Tabungan "' + name + '" dibuat!');
+    }
+
+    function promptSetorSavings(savId) {
+      document.getElementById('savingsTargetSelect').value = savId;
+      toggleModal('modal-setor-savings');
+    }
+
+    function handleSavingsSubmit(e) {
+      e.preventDefault();
+      const savId = document.getElementById('savingsTargetSelect').value;
+      const amount = parseFloat(document.getElementById('savingsAmountInput').value);
+      const wallet = document.getElementById('savingsSourceWallet').value;
+
+      const targetSav = savingsData.find(s => s.id === savId);
+      if (targetSav) {
+        targetSav.amount += amount;
+        transactions.unshift({
+          id: 'tx-' + Date.now(),
+          note: 'Setor Tabungan: ' + targetSav.target,
+          amount: amount,
+          type: 'EXPENSE',
+          category: 'Investasi & Tabungan',
+          wallet: wallet,
+          time: 'Hari ini, ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        });
+        renderTransactions();
+        renderSavings();
+        updateTotals();
+        toggleModal('modal-setor-savings');
+        document.getElementById('addSavingsForm').reset();
+        alert('Berhasil menabung Rp ' + amount.toLocaleString('id-ID') + '!');
+      }
+    }
+
+    function renderTransactions(filterText = '') {
+      const container = document.getElementById('transactionListContainer');
+      container.innerHTML = '';
+
+      const filtered = transactions.filter(t => 
+        t.note.toLowerCase().includes(filterText.toLowerCase()) || 
+        t.category.toLowerCase().includes(filterText.toLowerCase()) ||
+        t.wallet.toLowerCase().includes(filterText.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="py-6 text-center text-xs text-slate-400">Tidak ada transaksi yang cocok.</div>';
+        return;
+      }
+
+      filtered.forEach(t => {
+        const isExp = t.type === 'EXPENSE';
+        const item = document.createElement('div');
+        item.className = 'py-3 flex items-center justify-between gap-3 hover:bg-slate-50 px-1 rounded-xl transition';
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl ${isExp ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'} flex items-center justify-center flex-shrink-0">
+              <i data-lucide="${isExp ? 'arrow-up-right' : 'arrow-down-left'}" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-xs text-slate-900 truncate">${t.note}</div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
+                <span>${t.category}</span>
+                <span>•</span>
+                <span>${t.time}</span>
+                <span>•</span>
+                <span class="font-semibold text-slate-700">${t.wallet}</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="font-mono font-bold text-xs ${isExp ? 'text-slate-900' : 'text-emerald-600'}">
+              ${isExp ? '-' : '+'} Rp ${t.amount.toLocaleString('id-ID')}
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function filterTransactions() {
+      const q = document.getElementById('searchTxInput').value;
+      renderTransactions(q);
+    }
+
+    function updateTotals() {
+      let inc = 0, exp = 0;
+      transactions.forEach(t => {
+        if (t.type === 'INCOME') inc += t.amount;
+        else exp += t.amount;
+      });
+
+      document.getElementById('displayIncome').innerText = 'Rp ' + inc.toLocaleString('id-ID');
+      document.getElementById('displayExpense').innerText = 'Rp ' + exp.toLocaleString('id-ID');
+      const surplus = inc - exp;
+      document.getElementById('displaySurplus').innerText = (surplus >= 0 ? '+' : '-') + 'Rp ' + Math.abs(surplus).toLocaleString('id-ID');
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('cashflowChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+          datasets: [
+            {
+              label: 'Pemasukan',
+              data: [1200000, 350000, 0, 5000000, 800000, 2500000, 2500000],
+              backgroundColor: '#18181b',
+              borderRadius: 6,
+              barThickness: 12
+            },
+            {
+              label: 'Pengeluaran',
+              data: [450000, 680000, 120000, 950000, 1400000, 1800000, 1490000],
+              backgroundColor: '#a1a1aa',
+              borderRadius: 6,
+              barThickness: 12
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 9, family: 'Plus Jakarta Sans' } } },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                callback: function(val) { return 'Rp ' + (val/1000000) + 'M'; },
+                font: { size: 9, family: 'Plus Jakarta Sans' }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function downloadRealPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFillColor(18, 18, 21);
+      doc.rect(0, 0, 210, 35, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('IN MONEY — LAPORAN KEUANGAN & ARUS KAS', 14, 18);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('In Money • Tanggal Cetak: ' + new Date().toLocaleDateString('id-ID'), 14, 26);
+
+      let totalInc = 0, totalExp = 0;
+      transactions.forEach(t => {
+        if (t.type === 'INCOME') totalInc += t.amount;
+        else totalExp += t.amount;
+      });
+
+      const tableData = transactions.map((t, idx) => [
+        idx + 1,
+        t.time,
+        t.note,
+        t.category,
+        t.wallet,
+        t.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran',
+        (t.type === 'INCOME' ? '+ ' : '- ') + 'Rp ' + t.amount.toLocaleString('id-ID')
+      ]);
+
+      doc.autoTable({
+        startY: 45,
+        head: [['No', 'Waktu', 'Keterangan', 'Kategori', 'Dompet/Bank', 'Tipe', 'Nominal']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [18, 18, 21], fontStyle: 'bold' },
+        styles: { fontSize: 8, font: 'helvetica' }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total Pemasukan: Rp ' + totalInc.toLocaleString('id-ID'), 14, finalY);
+      doc.text('Total Pengeluaran: Rp ' + totalExp.toLocaleString('id-ID'), 14, finalY + 6);
+      doc.text('Cashflow Surplus/Defisit: Rp ' + (totalInc - totalExp).toLocaleString('id-ID'), 14, finalY + 12);
+
+      doc.save('In_Money_Laporan_Keuangan_' + Date.now() + '.pdf');
+      alert('Laporan PDF Keuangan In Money berhasil diunduh!');
+    }
+
+    function downloadSavingsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFillColor(18, 18, 21);
+      doc.rect(0, 0, 210, 35, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('IN MONEY — LAPORAN MUTASI TABUNGAN', 14, 18);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('In Money Savings Engine • Tanggal Cetak: ' + new Date().toLocaleDateString('id-ID'), 14, 26);
+
+      let totalSav = 0;
+      const savingsTableData = savingsData.map((s, idx) => {
+        totalSav += s.amount;
+        const hasGoal = s.goal > 0;
+        return [
+          idx + 1,
+          s.target,
+          'Rp ' + s.amount.toLocaleString('id-ID'),
+          hasGoal ? 'Rp ' + s.goal.toLocaleString('id-ID') : 'Fleksibel',
+          hasGoal ? ((s.amount / s.goal) * 100).toFixed(1) + '%' : 'N/A',
+          s.note || 'Tabungan Aktif'
+        ];
+      });
+
+      doc.autoTable({
+        startY: 45,
+        head: [['No', 'Nama Tabungan', 'Saldo Terkumpul', 'Target', 'Progress', 'Keterangan']],
+        body: savingsTableData,
+        theme: 'striped',
+        headStyles: { fillColor: [18, 18, 21], fontStyle: 'bold' },
+        styles: { fontSize: 8, font: 'helvetica' }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total Keseluruhan Saldo Tabungan: Rp ' + totalSav.toLocaleString('id-ID'), 14, finalY);
+
+      doc.save('In_Money_Laporan_Tabungan_' + Date.now() + '.pdf');
+      alert('Laporan PDF Mutasi Tabungan In Money berhasil diunduh!');
+    }
+
+    function exportJsonFile() {
+      const backupData = {
+        app: 'In Money',
+        version: '2.0.0',
+        exportedAt: new Date().toISOString(),
+        transactions: transactions,
+        savings: savingsData
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "in_money_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJsonFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.transactions && Array.isArray(parsed.transactions)) {
+            transactions = parsed.transactions;
+            if (parsed.savings && Array.isArray(parsed.savings)) savingsData = parsed.savings;
+            renderTransactions();
+            renderSavings();
+            updateTotals();
+            alert('Sukses memulihkan data In Money!');
+            toggleModal('modal-backup');
+          }
+        } catch (err) {
+          alert('Gagal membaca file JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function unlockApp() {
+      toggleModal('modal-lock');
+      alert('Kunci keamanan berhasil dibuka!');
+    }
+  </script>
+</body>
+</html>

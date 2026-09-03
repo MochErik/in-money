@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  web-pwa:
+    build:
+      context: ../
+      dockerfile: apps/web-pwa/Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  server-api:
+    build:
+      context: ../
+      dockerfile: apps/server-api/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  analytics-engine:
+    build:
+      context: ../services/analytics-engine-py
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

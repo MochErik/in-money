@@ -1,0 +1,25 @@
+{
+  "name": "in-money-monorepo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Enterprise-Grade Polyglot Monorepo for Offline-First PWA Financial & Cashflow Overflow Management",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "package:zip": "bash scripts/package-zip.sh"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.3",
+    "prettier": "^3.4.2",
+    "eslint": "^9.18.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

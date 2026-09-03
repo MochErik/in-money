@@ -1,0 +1,58 @@
+import { IWalletAccount } from '@zenith/types';
+
+export const DEFAULT_WALLETS: IWalletAccount[] = [
+  {
+    id: 'wallet-cash',
+    name: 'Uang Tunai Cash',
+    type: 'CASH',
+    balance: 450000,
+    logoUrl: './assets/logos/cash.jpg',
+    isDefault: false,
+    colorScheme: '#10b981',
+  },
+  {
+    id: 'wallet-mandiri',
+    name: 'Bank Mandiri',
+    type: 'BANK',
+    balance: 82500000,
+    logoUrl: './assets/logos/mandiri.png',
+    isDefault: true,
+    colorScheme: '#003d79',
+  },
+  {
+    id: 'wallet-bri',
+    name: 'Bank BRI',
+    type: 'BANK',
+    balance: 35800000,
+    logoUrl: './assets/logos/bri.png',
+    isDefault: false,
+    colorScheme: '#005596',
+  },
+  {
+    id: 'wallet-btn',
+    name: 'Bank BTN',
+    type: 'BANK',
+    balance: 15000000,
+    logoUrl: './assets/logos/btn.png',
+    isDefault: false,
+    colorScheme: '#0b2e65',
+  },
+  {
+    id: 'wallet-seabank',
+    name: 'SeaBank',
+    type: 'BANK',
+    balance: 8750000,
+    logoUrl: './assets/logos/seabank.jpg',
+    isDefault: false,
+    colorScheme: '#0081ff',
+  },
+  {
+    id: 'wallet-shopeepay',
+    name: 'ShopeePay',
+    type: 'E_WALLET',
+    balance: 3280000,
+    logoUrl: './assets/logos/shopeepay.png',
+    isDefault: false,
+    colorScheme: '#ee4d2d',
+  },
+];

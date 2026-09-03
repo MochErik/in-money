@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-clay: #e6eae0;
+  --hero-charcoal: #121214;
+  --tabungan-ash: #e4e7e0;
+}
+
+body {
+  background-color: var(--bg-clay);
+  color: #18181b;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.clay-canvas-gradient {
+  background: linear-gradient(150deg, #f2f5ee 0%, #e6eae0 50%, #dbe0d4 100%);
+}
+
+.hero-matte-gradient {
+  background: linear-gradient(135deg, #121214 0%, #1a1a1e 50%, #242429 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tabungan-ash-card {
+  background: linear-gradient(145deg, #e4e7e0 0%, #d8dcd3 100%);
+  border: 1px solid rgba(160, 170, 155, 0.35);
+}
