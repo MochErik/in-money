@@ -972,7 +972,7 @@
       localStorage.setItem('inmoney_pin', userPin);
     }
 
-    // ================= 1. 6-DIGIT PIN & BIOMETRIC LOGIN =================
+    // ================= 1. 6-DIGIT PIN & NATIVE WEBAUTHN FACE ID / PASSKEY =================
     function initLockScreen() {
       const lockScreen = document.getElementById('lockScreen');
       if (isUnlocked) {
@@ -1044,8 +1044,79 @@
       updatePinDots();
     }
 
+    // REAL APPLE WEBAUTHN / PASSKEY FACE ID PROMPT
     async function triggerBiometricAuth() {
-      unlockSuccess();
+      const lockPrompt = document.getElementById('lockPromptText');
+      if (!window.PublicKeyCredential) {
+        alert('Perangkat / browser ini belum mendukung WebAuthn Face ID.');
+        return;
+      }
+
+      try {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (!available) {
+          alert('Face ID / Biometrik tidak aktif atau tidak tersedia pada browser ini.');
+          return;
+        }
+
+        if (lockPrompt) {
+          lockPrompt.innerText = 'Pindai Face ID / Touch ID...';
+          lockPrompt.className = 'text-xs font-bold text-slate-900 mt-1';
+        }
+
+        const challenge = new Uint8Array(32);
+        window.crypto.getRandomValues(challenge);
+
+        const savedCredId = localStorage.getItem('inmoney_webauthn_id');
+
+        if (!savedCredId) {
+          // Register credential on device with Face ID prompt
+          const cred = await navigator.credentials.create({
+            publicKey: {
+              challenge: challenge,
+              rp: { name: "In Money PWA" },
+              user: {
+                id: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
+                name: "MochErik",
+                displayName: "Moch Erik Irriansyah"
+              },
+              pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+              authenticatorSelection: {
+                authenticatorAttachment: "platform",
+                userVerification: "required"
+              },
+              timeout: 60000
+            }
+          });
+
+          if (cred) {
+            const rawIdB64 = btoa(String.fromCharCode.apply(null, new Uint8Array(cred.rawId)));
+            localStorage.setItem('inmoney_webauthn_id', rawIdB64);
+            unlockSuccess();
+          }
+        } else {
+          // Authenticate with Face ID prompt
+          const rawIdArr = Uint8Array.from(atob(savedCredId), c => c.charCodeAt(0));
+          const assertion = await navigator.credentials.get({
+            publicKey: {
+              challenge: challenge,
+              allowCredentials: [{ id: rawIdArr, type: 'public-key' }],
+              userVerification: "required",
+              timeout: 60000
+            }
+          });
+
+          if (assertion) {
+            unlockSuccess();
+          }
+        }
+      } catch (err) {
+        console.warn('Biometric cancelled or failed:', err);
+        if (lockPrompt) {
+          lockPrompt.innerText = 'Face ID Dibatalkan / Gagal. Gunakan PIN.';
+          lockPrompt.className = 'text-xs font-bold text-rose-500 mt-1';
+        }
+      }
     }
 
     function promptForgotPin() {
@@ -1075,8 +1146,21 @@
       }
     }
 
-    function testBiometricSetup() {
-      alert('Face ID / Biometrik aktif dan terhubung pada perangkat ini.');
+    async function testBiometricSetup() {
+      if (!window.PublicKeyCredential) {
+        alert('Perangkat tidak mendukung WebAuthn Face ID.');
+        return;
+      }
+      try {
+        const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (available) {
+          alert('Face ID / Biometrik aktif dan terhubung dengan aman ke perangkat Anda!');
+        } else {
+          alert('Face ID / Touch ID tidak aktif di browser ini.');
+        }
+      } catch (e) {
+        alert('Status biometrik: ' + e.message);
+      }
     }
 
     // ================= 2. 5-TAB SWITCHER NAVIGATION =================
@@ -1195,33 +1279,106 @@
       lucide.createIcons();
     }
 
-    // ================= 4. FITUR 4: SMART OCR RECEIPT SCANNER =================
+    // ================= 4. FITUR 4: SMART AI RECEIPT SCANNER & AUTO-CATEGORIZATION =================
+    const SMART_MERCHANT_DATABASE = [
+      // Makanan & Minuman
+      { keywords: ['kopi', 'coffee', 'starbucks', 'kenangan', 'janji jiwa', 'fore', 'point coffee', 'cafe', 'kafe', 'resto', 'restoran', 'mcd', 'mcdonalds', 'kfc', 'richeese', 'hokben', 'hoka', 'pizza', 'mie gacoan', 'gacoan', 'solaria', 'padang', 'warung', 'bakso', 'soto', 'nasi', 'ayam', 'teh', 'boba', 'chatime', 'haus', 'mixue', 'burger'], category: 'Makanan & Minuman', tag: '#Kuliner' },
+      
+      // Belanja Harian & Minimarket
+      { keywords: ['alfamart', 'indomaret', 'superindo', 'hypermart', 'transmart', 'lotte', 'yomart', 'circle k', 'lawson', 'familymart', 'hero', 'minimarket', 'supermarket', 'toko kelontong', 'sembako'], category: 'Belanja Harian', tag: '#Belanja' },
+      
+      // Transportasi & Bahan Bakar
+      { keywords: ['spbu', 'pertamina', 'shell', 'bp', 'bensin', 'pertamax', 'pertalite', 'solar', 'gojek', 'goride', 'gocar', 'grab', 'grabfood', 'grabbike', 'maxim', 'indrive', 'kai', 'kereta', 'tiket', 'parkir', 'tol'], category: 'Transportasi', tag: '#Transport' },
+      
+      // Tagihan & Utilitas
+      { keywords: ['pln', 'listrik', 'token', 'pdam', 'air', 'indihome', 'myrepublic', 'biznet', 'wifi', 'telkomsel', 'xl', 'indosat', 'tri', 'smartfren', 'pulsa', 'kuota', 'bpjs', 'pajak'], category: 'Tagihan & Utilitas', tag: '#Tagihan' },
+      
+      // Kesehatan & Medis
+      { keywords: ['apotek', 'kimia farma', 'k24', 'guardian', 'watsons', 'century', 'obat', 'farmasi', 'klinik', 'dokter', 'rumah sakit', 'rs', 'lab', 'halodoc', 'alodokter'], category: 'Kesehatan & Medis', tag: '#Kesehatan' },
+
+      // Belanja & Fashion / Gadget
+      { keywords: ['uniqlo', 'h&m', 'zara', 'pull&bear', 'matahari', 'gramedia', 'shopee', 'tokopedia', 'lazada', 'blibli', 'tiktok shop', 'ibox', 'digimap', 'erafone'], category: 'Belanja Harian', tag: '#Shopping' }
+    ];
+
     async function handleReceiptScan(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       const statusText = document.getElementById('ocrStatusText');
-      if (statusText) statusText.innerText = 'Scanning...';
+      if (statusText) statusText.innerText = 'AI Menganalisis...';
 
       try {
         if (typeof Tesseract === 'undefined') {
-          alert('Modul OCR scanner sedang dimuat...');
+          alert('Modul OCR sedang dimuat, silakan coba 2 detik lagi.');
           return;
         }
+
         const worker = await Tesseract.createWorker('ind+eng');
         const ret = await worker.recognize(file);
         await worker.terminate();
 
         const fullText = (ret && ret.data && ret.data.text) ? ret.data.text : '';
-        if (statusText) statusText.innerText = 'Sukses!';
+        if (statusText) statusText.innerText = 'Selesai!';
         setTimeout(function() { if (statusText) statusText.innerText = 'Scan Struk'; }, 3000);
 
-        const lines = fullText.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 3; });
-        if (lines.length > 0) {
-          document.getElementById('formNote').value = lines[0].substring(0, 35);
+        const lowerText = fullText.toLowerCase();
+
+        // 1. SMART AMOUNT EXTRACTION
+        let cleanedText = fullText
+          .replace(/Rp\.?/gi, 'Rp ')
+          .replace(/(\d+)[Oo](\d+)/g, '$10$2')
+          .replace(/(\d+)[Oo]/g, '$10');
+
+        const numMatches = cleanedText.match(/(?:total|grand\s*total|bayar|tagihan|netto|tunai|cash|debit)?[.:\s]*([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,8})/gi);
+        let extractedAmount = 0;
+
+        if (numMatches && numMatches.length > 0) {
+          numMatches.forEach(function(m) {
+            const rawVal = parseFloat(m.replace(/[^0-9]/g, ''));
+            if (rawVal > extractedAmount && rawVal < 100000000) {
+              extractedAmount = rawVal;
+            }
+          });
         }
 
-        alert('Struk berhasil dipindai! Silakan cek dan simpan transaksi.');
+        if (extractedAmount > 0) {
+          document.getElementById('formAmount').value = extractedAmount;
+        }
+
+        // 2. SMART AI MERCHANT & CATEGORY RECOGNITION
+        let matchedCategory = 'Belanja Harian';
+        let matchedTag = '#StrukBelanja';
+        let storeName = '';
+
+        for (let i = 0; i < SMART_MERCHANT_DATABASE.length; i++) {
+          const item = SMART_MERCHANT_DATABASE[i];
+          for (let j = 0; j < item.keywords.length; j++) {
+            const kw = item.keywords[j];
+            if (lowerText.indexOf(kw) !== -1) {
+              matchedCategory = item.category;
+              matchedTag = item.tag;
+              storeName = kw.charAt(0).toUpperCase() + kw.slice(1);
+              break;
+            }
+          }
+          if (storeName) break;
+        }
+
+        // Extract first meaningful line as title if store name not detected
+        const lines = fullText.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 3 && !/^[0-9\s:.,-]+$/.test(l); });
+        const detectedTitle = storeName ? (matchedCategory === 'Makanan & Minuman' ? 'Makan / Minum di ' + storeName : 'Belanja di ' + storeName) : (lines.length > 0 ? lines[0].substring(0, 30) : 'Pembelian dari Struk');
+
+        // 3. AUTO FILL FORM FIELDS WITH AI RECOGNITION
+        document.getElementById('formNote').value = detectedTitle;
+        document.getElementById('formCategoryCustom').value = matchedCategory;
+        document.getElementById('formTags').value = matchedTag + ' #Struk';
+
+        alert('✨ AI Smart Scan Berhasil!\n\n' +
+              '• Kategori Terdeteksi: ' + matchedCategory + '\n' +
+              '• Deskripsi: ' + detectedTitle + '\n' +
+              '• Nominal: Rp ' + extractedAmount.toLocaleString('id-ID') + '\n' +
+              '• Tag: ' + matchedTag);
+
       } catch (err) {
         if (statusText) statusText.innerText = 'Scan Gagal';
         setTimeout(function() { if (statusText) statusText.innerText = 'Scan Struk'; }, 2500);
